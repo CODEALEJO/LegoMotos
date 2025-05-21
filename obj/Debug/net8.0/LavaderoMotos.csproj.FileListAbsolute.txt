@@ -419,3 +419,4 @@ C:\Users\alejo\OneDrive\Escritorio\Programacion\LavaderoMotos\obj\Debug\net8.0\r
 C:\Users\alejo\OneDrive\Escritorio\Programacion\LavaderoMotos\obj\Debug\net8.0\LavaderoMotos.pdb
 C:\Users\alejo\OneDrive\Escritorio\Programacion\LavaderoMotos\obj\Debug\net8.0\LavaderoMotos.genruntimeconfig.cache
 C:\Users\alejo\OneDrive\Escritorio\Programacion\LavaderoMotos\obj\Debug\net8.0\ref\LavaderoMotos.dll
+C:\Users\alejo\OneDrive\Escritorio\Programacion\LavaderoMotos\obj\Debug\net8.0\LavaderoMotos.sourcelink.json
