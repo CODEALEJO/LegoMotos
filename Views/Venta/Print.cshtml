@@ -1,0 +1,135 @@
+@model LavaderoMotos.Models.Venta
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        /* Estilos específicos para impresora térmica de 80mm */
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 76mm; /* Ancho máximo de impresión */
+            margin: 0;
+            padding: 2mm;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+        .header h2 {
+            font-size: 14px;
+            margin: 2mm 0;
+        }
+        .header p {
+            margin: 1mm 0;
+            font-size: 10px;
+        }
+        .details {
+            margin: 3mm 0;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 3mm;
+        }
+        .details p {
+            margin: 1mm 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 3mm 0;
+        }
+        th {
+            text-align: left;
+            border-bottom: 1px solid #000;
+            padding: 1mm 0;
+        }
+        td {
+            padding: 1mm 0;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total {
+            border-top: 1px solid #000;
+            font-weight: bold;
+            margin-top: 2mm;
+            padding-top: 2mm;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 5mm;
+            font-size: 10px;
+        }
+        @@media print {
+            @@page {
+                size: 80mm auto;
+                margin: 0;
+            }
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>LEGO MOTOS</h2>
+        <p>NIT: 123456789-0</p>
+        <p>Cra 39 #66-20- Villa hermosa</p>
+        <p>Tel: 304 6571456</p>
+    </div>
+
+    <h4 style="text-align: center; margin: 2mm 0;">FACTURA DE VENTA</h4>
+
+    <div class="details">
+        <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+        <p><strong>Placa:</strong> @Model.Placa</p>
+        <p><strong>Kilometraje:</strong> @Model.Kilometraje</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th class="text-right">Cant</th>
+                <th class="text-right">P.Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var producto in Model.Productos)
+            {
+                <tr>
+                    <td>@producto.Producto</td>
+                    <td class="text-right">@producto.Cantidad</td>
+                    <td class="text-right">@producto.PrecioFormateado</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="total text-right">
+        TOTAL: $@Model.TotalFormateado
+    </div>
+
+    <div class="footer">
+        <p>¡Gracias por su compra!</p>
+        <p>Vuelva pronto</p>
+        <p>--------------------------------</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+                setTimeout(function() {
+                    window.close();
+                }, 100);
+            }, 200);
+        };
+    </script>
+</body>
+</html>

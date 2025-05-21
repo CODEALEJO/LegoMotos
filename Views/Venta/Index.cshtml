@@ -1,0 +1,210 @@
+@model List<LavaderoMotos.Models.Venta>
+
+<div class="container mt-4">
+    <!-- Barra de navegación centrada -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
+        <div class="container-fluid justify-content-center">
+            <div class="navbar-nav flex-row">
+                <a class="nav-link btn btn-outline-primary mx-2 active" asp-controller="Venta"
+                    asp-action="Index">Ventas</a>
+                <a class="nav-link btn btn-outline-secondary mx-2" asp-controller="Inventario"
+                    asp-action="Index">Inventario</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="nav-link btn btn-outline-danger mx-2"
+                        style="background:none; border:none;">
+                        Cerrar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <h2 class="mb-4 text-center">Historial de Ventas</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filtros de búsqueda - Versión mejorada -->
+    <div class="card mb-4 mx-auto" style="max-width: 1000px;">
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3 justify-content-center align-items-center">
+                <!-- Filtro por fecha -->
+                <div class="col-md-3">
+                    <label for="fecha" class="form-label">Filtrar por fecha:</label>
+                    <input type="date" name="fecha" id="fecha" class="form-control"
+                        value="@Context.Request.Query["fecha"]" />
+                </div>
+
+                <!-- Filtro por placa -->
+                <div class="col-md-3">
+                    <label for="placa" class="form-label">Buscar por placa:</label>
+                    <input type="text" name="placa" id="placa" class="form-control" maxlength="6"
+                        placeholder="Ej: ABC123" value="@Context.Request.Query["placa"]" />
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        <a asp-action="Create" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Nueva Venta
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Listado de ventas estilo acordeón -->
+    <div class="accordion mx-auto" id="ventasAccordion" style="max-width: 1000px;">
+        @foreach (var venta in Model)
+        {
+            <div class="accordion-item mb-3 border rounded">
+                <h2 class="accordion-header" id="heading-@venta.Id">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse-@venta.Id" aria-expanded="false" aria-controls="collapse-@venta.Id">
+                        <div class="d-flex justify-content-between w-100">
+                            <span class="fw-bold">Placa: @venta.Placa</span>
+                            <span class="text-muted me-3">@venta.Fecha.ToShortDateString()</span>
+                            <span class="badge bg-primary">Total: $@venta.TotalFormateado</span>
+                        </div>
+                    </button>
+                </h2>
+                <div id="collapse-@venta.Id" class="accordion-collapse collapse" aria-labelledby="heading-@venta.Id"
+                    data-bs-parent="#ventasAccordion">
+                    <div class="accordion-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>Kilometraje:</strong> @venta.Kilometraje</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Fecha:</strong> @venta.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Productos</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unitario</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var producto in venta.Productos)
+                                    {
+                                        <tr>
+                                            <td>@producto.Producto</td>
+                                            <td>@producto.Cantidad</td>
+                                            <td>$@producto.PrecioFormateado</td>
+                                            <td>$@producto.TotalFormateado</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-3">
+                            <a asp-action="Edit" asp-route-id="@venta.Id" class="btn btn-warning btn-sm me-2">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@venta.Id" class="btn btn-danger btn-sm me-2">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                            <a asp-action="Print" asp-route-id="@venta.Id" class="btn btn-primary btn-sm">
+                                <i class="bi bi-printer"></i> Imprimir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<!-- Script para búsqueda dinámica por placa -->
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const placaInput = document.getElementById('placa');
+            const searchForm = document.querySelector('form[method="get"]');
+
+            // Función para manejar el cambio en el input
+            function handlePlacaChange() {
+                if (placaInput.value === '') {
+                    // Si el input está vacío, enviar el formulario para mostrar todas las ventas
+                    searchForm.submit();
+                }
+            }
+
+            // Escuchar el evento 'input' que se dispara con cada cambio
+            placaInput.addEventListener('input', function () {
+                // Usamos un pequeño timeout para esperar a que el usuario termine de escribir
+                clearTimeout(this.timer);
+                this.timer = setTimeout(function () {
+                    handlePlacaChange();
+                }, 500); // 500ms de espera después de la última tecla
+            });
+
+            // También manejar cuando se borra con la tecla de borrar o cortar
+            placaInput.addEventListener('keyup', function (e) {
+                if (e.key === 'Delete' || e.key === 'Backspace' || (e.ctrlKey && e.key === 'x')) {
+                    handlePlacaChange();
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0, 0, 0, .125);
+    }
+
+    .accordion-item {
+        border-radius: 0.25rem !important;
+    }
+
+    /* Estilos mejorados para la barra de navegación */
+    .navbar-nav.flex-row {
+        gap: 10px;
+    }
+
+    /* Estilos para los botones de la barra de navegación */
+    .nav-link.btn {
+        min-width: 120px;
+        text-align: center;
+    }
+
+    /* Estilo para el botón activo */
+    .nav-link.btn.active {
+        font-weight: bold;
+    }
+</style>

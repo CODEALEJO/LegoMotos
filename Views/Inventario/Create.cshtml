@@ -1,0 +1,77 @@
+@model LavaderoMotos.Models.Producto
+
+@{
+    ViewData["Title"] = "Agregar Producto";
+}
+
+<div class="container mt-4">
+    <h2>Agregar Nuevo Producto</h2>
+
+    <form asp-action="Create" method="post" id="productoForm">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label asp-for="Nombre" class="form-label"></label>
+            <input asp-for="Nombre" class="form-control" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label asp-for="Cantidad" class="form-label"></label>
+                <input asp-for="Cantidad" class="form-control" id="cantidadInput" />
+                <span asp-validation-for="Cantidad" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Costo" class="form-label"></label>
+                <input asp-for="Costo" class="form-control" id="costoInput" />
+                <span asp-validation-for="Costo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="PrecioVenta" class="form-label"></label>
+                <input asp-for="PrecioVenta" class="form-control" id="precioVentaInput" />
+                <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Ganancia por Unidad</label>
+                <input type="text" class="form-control" id="gananciaUnidad" readonly />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-save"></i> Guardar Producto
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const formatoMoneda = new Intl.NumberFormat('es-CO', {
+                style: 'decimal',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+
+            function calcularGanancias() {
+                const costo = parseFloat(document.getElementById('costoInput').value) || 0;
+                const precioVenta = parseFloat(document.getElementById('precioVentaInput').value) || 0;
+                const ganancia = precioVenta - costo;
+                
+                document.getElementById('gananciaUnidad').value = formatoMoneda.format(ganancia);
+            }
+
+            document.getElementById('costoInput').addEventListener('input', calcularGanancias);
+            document.getElementById('precioVentaInput').addEventListener('input', calcularGanancias);
+            
+            // Calcular al cargar si hay valores
+            calcularGanancias();
+        });
+    </script>
+}
