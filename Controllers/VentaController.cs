@@ -47,6 +47,8 @@ namespace LavaderoMotos.Controllers
             };
             return View(venta);
         }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Venta venta)
@@ -69,6 +71,12 @@ namespace LavaderoMotos.Controllers
                             .ToList();
                     }
 
+                    // Si no se especificó fecha, usar la actual
+                    if (venta.Fecha == default)
+                    {
+                        venta.Fecha = DateTime.Now;
+                    }
+
                     // Validar que haya al menos un producto
                     if (venta.Productos == null || venta.Productos.Count == 0)
                     {
@@ -76,7 +84,7 @@ namespace LavaderoMotos.Controllers
                         return View(venta);
                     }
 
-                    // Resto del código de validación de stock...
+                    // Validar stock
                     var productosConStockInsuficiente = new List<string>();
                     foreach (var productoVenta in venta.Productos)
                     {
@@ -118,7 +126,6 @@ namespace LavaderoMotos.Controllers
                 return View(venta);
             }
         }
-
 
 
         public IActionResult Edit(int id)
