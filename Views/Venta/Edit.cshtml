@@ -5,15 +5,23 @@
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4">Editar Venta</h2>
-
+    <!-- Mensajes de alerta -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
             @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
+    <h2>Editar Venta</h2>
 
     @if (Model == null)
     {
@@ -24,60 +32,78 @@
     }
     else
     {
-        <form asp-action="Edit" method="post" id="editForm">
+        <form asp-action="Edit" method="post" id="ventaForm">
+            @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="Fecha" />
 
-            <div class="mb-3">
-                <label asp-for="Placa" class="form-label"></label>
-                <input asp-for="Placa" class="form-control" id="editPlaca" />
-                <span asp-validation-for="Placa" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="Placa" class="form-label"></label>
+                        <input asp-for="Placa" class="form-control" id="placaInput" />
+                        <span asp-validation-for="Placa" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="Kilometraje" class="form-label"></label>
+                        <input asp-for="Kilometraje" class="form-control" />
+                        <span asp-validation-for="Kilometraje" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="Fecha" class="form-label">Fecha de Venta</label>
+                        <input asp-for="Fecha" type="datetime-local" class="form-control"
+                            value="@Model.Fecha.ToString("yyyy-MM-ddTHH:mm")" />
+                        <span asp-validation-for="Fecha" class="text-danger"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Kilometraje" class="form-label"></label>
-                <input asp-for="Kilometraje" class="form-control" />
-                <span asp-validation-for="Kilometraje" class="text-danger"></span>
-            </div>
-
+            <hr />
             <h4>Productos</h4>
-            <div id="productos-container">
+            <div id="productosContainer">
                 @for (int i = 0; i < Model.Productos.Count; i++)
                 {
                     <div class="producto-item mb-3 border p-3 rounded">
-                        <input type="hidden" name="Productos[@i].Id" value="@Model.Productos[i].Id" />
-                        <input type="hidden" name="Productos[@i].VentaId" value="@Model.Productos[i].VentaId" />
                         <div class="row">
                             <div class="col-md-4">
                                 <label class="form-label">Producto</label>
-                                <input name="Productos[@i].Producto" value="@Model.Productos[i].Producto" class="form-control" required />
-                                <span asp-validation-for="Productos[i].Producto" class="text-danger"></span>
+                                <input name="Productos[@i].Producto" value="@Model.Productos[i].Producto"
+                                    class="form-control producto-input" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[@i].Producto"
+                                    data-valmsg-replace="true"></span>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Cantidad</label>
-                                <input name="Productos[@i].Cantidad" value="@Model.Productos[i].Cantidad" type="number" min="1" class="form-control cantidad-input" required />
-                                <span asp-validation-for="Productos[i].Cantidad" class="text-danger"></span>
+                                <input name="Productos[@i].Cantidad" type="number" min="1" value="@Model.Productos[i].Cantidad"
+                                    class="form-control cantidad-input" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[@i].Cantidad"
+                                    data-valmsg-replace="true"></span>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">Precio Unitario</label>
-                                <input name="Productos[@i].Precio" 
-                                       value="@Model.Productos[i].Precio.ToString("0.00").Replace(",", ".")" 
-                                       class="form-control precio-input" 
-                                       type="number"
-                                       step="0.01"
-                                       required />
-                                <span asp-validation-for="Productos[i].Precio" class="text-danger"></span>
+                                <input name="Productos[@i].Precio" type="number" step="0.01"
+                                    value="@Model.Productos[i].Precio.ToString("0.00").Replace(",", ".")"
+                                    class="form-control precio-input" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[@i].Precio"
+                                    data-valmsg-replace="true"></span>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Total</label>
-                                <input type="text" value="@((Model.Productos[i].Cantidad * Model.Productos[i].Precio).ToString("N0", new System.Globalization.CultureInfo("es-CO")))" class="form-control total-producto" readonly />
+                                <input type="text" class="form-control total-producto"
+                                    value="@((Model.Productos[i].Cantidad * Model.Productos[i].Precio).ToString("N0", new System.Globalization.CultureInfo("es-CO")))"
+                                    readonly />
                             </div>
-                            <div class="col-md-1 d-flex align-items-end">
+                            <div class="col-md-2 d-flex align-items-end">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
-                                    <i class="bi bi-trash"></i>
+                                    <i class="bi bi-trash"></i> Eliminar
                                 </button>
                             </div>
                         </div>
+                        <input type="hidden" name="Productos[@i].Id" value="@Model.Productos[i].Id" />
+                        <input type="hidden" name="Productos[@i].VentaId" value="@Model.Productos[i].VentaId" />
                     </div>
                 }
             </div>
@@ -86,16 +112,44 @@
                 <i class="bi bi-plus-circle"></i> Agregar Producto
             </button>
 
-            <div class="mb-3">
-                <h5>Total Venta: <span id="totalVenta">@Model.Total.ToString("N0", new System.Globalization.CultureInfo("es-CO"))</span></h5>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="Descuento" class="form-label">Descuento (%)</label>
+                                <input asp-for="Descuento" type="number" min="0" max="100" step="1" class="form-control"
+                                    id="descuentoInput" value="@Model.Descuento" />
+                                <span asp-validation-for="Descuento" class="text-danger"></span>
+                                <small class="text-muted">Ingrese un valor entre 0 y 100</small>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="text-end">
+                                <h5>Subtotal: <span id="subtotalVenta">@Model.Productos.Sum(p => p.Cantidad *
+                                                                            p.Precio).ToString("N0", new System.Globalization.CultureInfo("es-CO"))</span></h5>
+                                                                                                                                            <h5>Descuento: <span id="descuentoAplicado">@((Model.Productos.Sum(p => p.Cantidad *
+                                                                            p.Precio) * (Model.Descuento / 100)).ToString("N0", new
+                                                                            System.Globalization.CultureInfo("es-CO")))</span> (<span
+                                    id="porcentajeDescuento">@Model.Descuento</span>%)</h5>
+                            <h4>Total Venta: <span id="totalVenta">@Model.Total.ToString("N0", new
+                                                                        System.Globalization.CultureInfo("es-CO"))</span></h4>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="mb-3">
-                <button type="submit" class="btn btn-primary">Actualizar</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Actualizar Venta
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
             </div>
         </form>
-    }
+        }
 </div>
 
 @section Scripts {
@@ -109,144 +163,146 @@
         });
 
         function agregarProducto() {
-            const container = document.getElementById("productos-container");
+            const container = document.getElementById("productosContainer");
             const divProducto = document.createElement("div");
             divProducto.className = "producto-item mb-3 border p-3 rounded";
             divProducto.innerHTML = `
-                <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label">Producto</label>
-                        <input name="Productos[${productoIndex}].Producto" class="form-control" required />
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Cantidad</label>
-                        <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" class="form-control cantidad-input" required />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Precio Unitario</label>
-                        <input name="Productos[${productoIndex}].Precio" 
-                               type="number" 
-                               step="0.01"
-                               class="form-control precio-input" 
-                               required />
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Total</label>
-                        <input type="text" class="form-control total-producto" readonly />
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Producto</label>
+                                <input name="Productos[${productoIndex}].Producto" class="form-control producto-input" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Cantidad</label>
+                                <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad-input" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Precio Unitario</label>
+                                <input name="Productos[${productoIndex}].Precio" type="number" step="0.01" class="form-control precio-input" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Total</label>
+                                <input type="text" class="form-control total-producto" readonly />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
+                        <input type="hidden" name="Productos[${productoIndex}].VentaId" value="@Model.Id" />
+                    `;
             container.appendChild(divProducto);
-            
+
+            // Configurar eventos
             const precioInput = divProducto.querySelector('.precio-input');
             const cantidadInput = divProducto.querySelector('.cantidad-input');
-            
-            precioInput.addEventListener('input', function() {
-                calcularTotalProducto(this);
+            const totalInput = divProducto.querySelector('.total-producto');
+
+            const calcularTotalProducto = () => {
+                const cantidad = parseFloat(cantidadInput.value) || 0;
+                const precio = parseFloat(precioInput.value) || 0;
+                totalInput.value = formatoMoneda.format(cantidad * precio);
                 actualizarTotalVenta();
-            });
-            
-            cantidadInput.addEventListener('input', function() {
-                const precioInput = this.closest('.row').querySelector('.precio-input');
-                calcularTotalProducto(precioInput);
-                actualizarTotalVenta();
-            });
-            
+            };
+
+            precioInput.addEventListener('input', calcularTotalProducto);
+            cantidadInput.addEventListener('input', calcularTotalProducto);
+
+            // Inicializar validación
+            $.validator.unobtrusive.parse(divProducto);
             productoIndex++;
         }
 
         function eliminarProducto(button) {
             const productoItem = button.closest('.producto-item');
             productoItem.remove();
-            
-            const container = document.getElementById("productos-container");
+
+            // Reindexar todos los productos
+            const container = document.getElementById("productosContainer");
             const items = container.querySelectorAll('.producto-item');
-            
+
             items.forEach((item, index) => {
                 item.querySelectorAll('[name^="Productos["]').forEach(input => {
                     const name = input.name.replace(/Productos\[\d+\]/, `Productos[${index}]`);
                     input.name = name;
                 });
             });
-            
+
             actualizarTotalVenta();
             productoIndex = items.length;
         }
 
-        document.getElementById('editPlaca')?.addEventListener('input', function() {
-            this.value = this.value.toUpperCase();
-        });
-
-        document.querySelectorAll('.precio-input').forEach(input => {
-            input.addEventListener('input', function() {
-                calcularTotalProducto(this);
-                actualizarTotalVenta();
-            });
-        });
-
-        document.querySelectorAll('.cantidad-input').forEach(input => {
-            input.addEventListener('input', function() {
-                const precioInput = this.closest('.row').querySelector('.precio-input');
-                calcularTotalProducto(precioInput);
-                actualizarTotalVenta();
-            });
-        });
-
-        function calcularTotalProducto(input) {
-            const row = input.closest('.row');
-            const cantidadInput = row.querySelector('.cantidad-input');
-            const precioInput = row.querySelector('.precio-input');
-            const totalInput = row.querySelector('.total-producto');
-            
-            const cantidad = parseFloat(cantidadInput.value) || 0;
-            const precio = parseFloat(precioInput.value) || 0;
-            
-            const total = cantidad * precio;
-            totalInput.value = formatoMoneda.format(total);
-        }
-
         function actualizarTotalVenta() {
-            let totalVenta = 0;
-            document.querySelectorAll('.total-producto').forEach(input => {
-                const value = input.value.replace(/\./g, '');
-                totalVenta += parseFloat(value) || 0;
+            let subtotal = 0;
+
+            // Calcular subtotal sumando todos los productos
+            document.querySelectorAll('.producto-item').forEach(item => {
+                const cantidad = parseFloat(item.querySelector('.cantidad-input').value) || 0;
+                const precio = parseFloat(item.querySelector('.precio-input').value) || 0;
+                subtotal += cantidad * precio;
             });
-            
-            document.getElementById('totalVenta').textContent = formatoMoneda.format(totalVenta);
+
+            const descuento = parseFloat(document.getElementById('descuentoInput').value) || 0;
+            const descuentoMonetario = subtotal * (descuento / 100);
+            const total = subtotal - descuentoMonetario;
+
+            // Actualizar los valores en pantalla
+            document.getElementById('subtotalVenta').textContent = formatoMoneda.format(subtotal);
+            document.getElementById('descuentoAplicado').textContent = formatoMoneda.format(descuentoMonetario);
+            document.getElementById('porcentajeDescuento').textContent = descuento;
+            document.getElementById('totalVenta').textContent = formatoMoneda.format(total);
         }
 
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            document.querySelectorAll('.precio-input').forEach(input => {
-                input.value = parseFloat(input.value).toFixed(2);
-            });
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+            // Configurar eventos para productos existentes
+            document.querySelectorAll('.producto-item').forEach(item => {
+                const precioInput = item.querySelector('.precio-input');
+                const cantidadInput = item.querySelector('.cantidad-input');
+                const totalInput = item.querySelector('.total-producto');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.precio-input').forEach(input => {
-                calcularTotalProducto(input);
+                const calcularTotalProducto = () => {
+                    const cantidad = parseFloat(cantidadInput.value) || 0;
+                    const precio = parseFloat(precioInput.value) || 0;
+                    totalInput.value = formatoMoneda.format(cantidad * precio);
+                    actualizarTotalVenta();
+                };
+
+                precioInput.addEventListener('input', calcularTotalProducto);
+                cantidadInput.addEventListener('input', calcularTotalProducto);
             });
-            actualizarTotalVenta();
+
+            // Convertir placa a mayúsculas
+            document.getElementById('placaInput')?.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+
+            // Actualizar total cuando cambia el descuento
+            document.getElementById('descuentoInput').addEventListener('input', actualizarTotalVenta);
         });
     </script>
+
+    <style>
+        .producto-item {
+            background-color: #f8f9fa;
+        }
+
+        .total-producto {
+            font-weight: bold;
+            background-color: #e9ecef;
+        }
+
+        #totalVenta {
+            font-weight: bold;
+            color: #0d6efd;
+            font-size: 1.2rem;
+        }
+    </style>
 }
 
-<style>
-    .producto-item {
-        background-color: #f8f9fa;
-    }
-    .total-producto {
-        font-weight: bold;
-        background-color: #e9ecef;
-    }
-    #totalVenta {
-        font-weight: bold;
-        color: #0d6efd;
-        font-size: 1.2rem;
-    }
-</style>
+<!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
