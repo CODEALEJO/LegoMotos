@@ -117,67 +117,65 @@ namespace LavaderoMotos.Services
         }
 
 
-       public void CrearConControlInventario(Venta venta)
-{
-    var strategy = _context.Database.CreateExecutionStrategy();
-
-    strategy.Execute(() =>
-    {
-        using var transaction = _context.Database.BeginTransaction();
-
-        try
+        public void CrearConControlInventario(Venta venta)
         {
-            // Si no tiene fecha asignada, usar la actual
-            if (venta.Fecha == default)
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            strategy.Execute(() =>
             {
-                venta.Fecha = DateTime.Now;
-            }
+                using var transaction = _context.Database.BeginTransaction();
 
-            // Validar inventario
-            foreach (var productoVenta in venta.Productos)
-            {
-                var productoInventario = _context.Productos
-                    .FirstOrDefault(p => p.Nombre.ToLower() == productoVenta.Producto.ToLower());
+                try
+                {
+                    // Si no tiene fecha asignada, usar la actual
+                    if (venta.Fecha == default)
+                    {
+                        venta.Fecha = DateTime.Now;
+                    }
 
-                if (productoInventario == null)
-                    throw new Exception($"Producto {productoVenta.Producto} no encontrado en inventario");
+                    // Validar inventario
+                    foreach (var productoVenta in venta.Productos)
+                    {
+                        var productoInventario = _context.Productos
+                            .FirstOrDefault(p => p.Nombre.ToLower() == productoVenta.Producto.ToLower());
 
-                if (productoInventario.Cantidad < productoVenta.Cantidad)
-                    throw new Exception($"Stock insuficiente para {productoVenta.Producto}");
-            }
+                        if (productoInventario == null)
+                            throw new Exception($"Producto {productoVenta.Producto} no encontrado en inventario");
 
-            // Actualizar inventario
-            foreach (var productoVenta in venta.Productos)
-            {
-                var productoInventario = _context.Productos
-                    .FirstOrDefault(p => p.Nombre.ToLower() == productoVenta.Producto.ToLower());
+                        if (productoInventario.Cantidad < productoVenta.Cantidad)
+                            throw new Exception($"Stock insuficiente para {productoVenta.Producto}");
+                    }
 
-                productoInventario.Cantidad -= productoVenta.Cantidad;
-                _context.Productos.Update(productoInventario);
-            }
+                    // Actualizar inventario
+                    foreach (var productoVenta in venta.Productos)
+                    {
+                        var productoInventario = _context.Productos
+                            .FirstOrDefault(p => p.Nombre.ToLower() == productoVenta.Producto.ToLower());
 
-            // Crear la venta (sin productos primero)
-            _context.Ventas.Add(venta);
-            _context.SaveChanges();
+                        productoInventario.Cantidad -= productoVenta.Cantidad;
+                        _context.Productos.Update(productoInventario);
+                    }
 
-            // Asignar VentaId a los productos y asegurar que no tengan ID asignado
-            foreach (var producto in venta.Productos)
-            {
-                producto.VentaId = venta.Id;
-                producto.Id = 0; // Asegurar que el ID sea 0 para que la BD lo autoincremente
-                _context.ProductosVenta.Add(producto);
-            }
+                    // Asegurar que los productos no tengan IDs asignados
+                    foreach (var producto in venta.Productos)
+                    {
+                        producto.Id = 0;
+                        producto.VentaId = 0; // Se asignará automáticamente al guardar
+                    }
 
-            _context.SaveChanges();
-            transaction.Commit();
+                    // Crear la venta con sus productos
+                    _context.Ventas.Add(venta);
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new Exception("Error al crear la venta con control de inventario", ex);
+                }
+            });
         }
-        catch (Exception ex)
-        {
-            transaction.Rollback();
-            throw new Exception("Error al crear la venta con control de inventario", ex);
-        }
-    });
-}
 
 
 

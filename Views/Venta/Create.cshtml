@@ -4,7 +4,6 @@
 }
 
 <div class="container mt-4">
-    <!-- Mensajes de alerta -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
@@ -44,9 +43,8 @@
                 <div class="mb-3">
                     <label asp-for="Fecha" class="form-label">Fecha de Venta</label>
                     <input asp-for="Fecha" type="datetime-local" class="form-control"
-                        value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                           value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
                     <span asp-validation-for="Fecha" class="text-danger"></span>
-                    <small class="text-muted">Deje en blanco para usar fecha y hora actual</small>
                 </div>
             </div>
         </div>
@@ -54,28 +52,24 @@
         <hr />
         <h4>Productos</h4>
         <div id="productosContainer">
-            <!-- Producto inicial -->
             <div class="producto-item mb-3 border p-3 rounded">
                 <div class="row">
                     <div class="col-md-4">
                         <label class="form-label">Producto</label>
                         <input name="Productos[0].Producto" class="form-control producto-input" required />
-                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[0].Producto"
-                            data-valmsg-replace="true"></span>
+                        <span asp-validation-for="Productos[0].Producto" class="text-danger"></span>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Cantidad</label>
-                        <input name="Productos[0].Cantidad" type="number" min="1" value="1"
-                            class="form-control cantidad-input" required />
-                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[0].Cantidad"
-                            data-valmsg-replace="true"></span>
+                        <input name="Productos[0].Cantidad" type="number" min="1" value="1" 
+                               class="form-control cantidad-input" required />
+                        <span asp-validation-for="Productos[0].Cantidad" class="text-danger"></span>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Precio Unitario</label>
-                        <input name="Productos[0].Precio" type="number" step="0.01" class="form-control precio-input"
-                            required />
-                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[0].Precio"
-                            data-valmsg-replace="true"></span>
+                        <input name="Productos[0].Precio" type="number" step="0.01" 
+                               class="form-control precio-input" required />
+                        <span asp-validation-for="Productos[0].Precio" class="text-danger"></span>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Total</label>
@@ -101,17 +95,15 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label asp-for="Descuento" class="form-label">Descuento (%)</label>
-                            <input asp-for="Descuento" type="number" min="0" max="100" step="1" class="form-control"
-                                id="descuentoInput" value="0" />
+                            <input asp-for="Descuento" type="number" min="0" max="100" step="1" 
+                                   class="form-control" id="descuentoInput" value="0" />
                             <span asp-validation-for="Descuento" class="text-danger"></span>
-                            <small class="text-muted">Ingrese un valor entre 0 y 100</small>
                         </div>
                     </div>
                     <div class="col-md-8">
                         <div class="text-end">
                             <h5>Subtotal: <span id="subtotalVenta">0</span></h5>
-                            <h5>Descuento: <span id="descuentoAplicado">0</span> (<span
-                                    id="porcentajeDescuento">0</span>%)</h5>
+                            <h5>Descuento: <span id="descuentoAplicado">0</span> (<span id="porcentajeDescuento">0</span>%)</h5>
                             <h4>Total Venta: <span id="totalVenta">0</span></h4>
                         </div>
                     </div>
@@ -145,37 +137,36 @@
             const divProducto = document.createElement("div");
             divProducto.className = "producto-item mb-3 border p-3 rounded";
             divProducto.innerHTML = `
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">Producto</label>
-                            <input name="Productos[${productoIndex}].Producto" class="form-control producto-input" required />
-                            <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Cantidad</label>
-                            <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad-input" required />
-                            <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Precio Unitario</label>
-                            <input name="Productos[${productoIndex}].Precio" type="number" step="0.01" class="form-control precio-input" required />
-                            <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Total</label>
-                            <input type="text" class="form-control total-producto" readonly />
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
-                                <i class="bi bi-trash"></i> Eliminar
-                            </button>
-                        </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Producto</label>
+                        <input name="Productos[${productoIndex}].Producto" class="form-control producto-input" required />
+                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
                     </div>
-                    <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
-                `;
+                    <div class="col-md-2">
+                        <label class="form-label">Cantidad</label>
+                        <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad-input" required />
+                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Precio Unitario</label>
+                        <input name="Productos[${productoIndex}].Precio" type="number" step="0.01" class="form-control precio-input" required />
+                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Total</label>
+                        <input type="text" class="form-control total-producto" readonly />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
+            `;
             container.appendChild(divProducto);
 
-            // Configurar eventos
             const precioInput = divProducto.querySelector('.precio-input');
             const cantidadInput = divProducto.querySelector('.cantidad-input');
             const totalInput = divProducto.querySelector('.total-producto');
@@ -190,7 +181,6 @@
             precioInput.addEventListener('input', calcularTotalProducto);
             cantidadInput.addEventListener('input', calcularTotalProducto);
 
-            // Inicializar validación
             $.validator.unobtrusive.parse(divProducto);
             productoIndex++;
         }
@@ -198,26 +188,11 @@
         function eliminarProducto(button) {
             const productoItem = button.closest('.producto-item');
             productoItem.remove();
-
-            // Reindexar todos los productos
-            const container = document.getElementById("productosContainer");
-            const items = container.querySelectorAll('.producto-item');
-
-            items.forEach((item, index) => {
-                item.querySelectorAll('[name^="Productos["]').forEach(input => {
-                    const name = input.name.replace(/Productos\[\d+\]/, `Productos[${index}]`);
-                    input.name = name;
-                });
-            });
-
             actualizarTotalVenta();
-            productoIndex = items.length;
         }
 
         function actualizarTotalVenta() {
             let subtotal = 0;
-
-            // Calcular subtotal sumando todos los productos
             document.querySelectorAll('.producto-item').forEach(item => {
                 const cantidad = parseFloat(item.querySelector('.cantidad-input').value) || 0;
                 const precio = parseFloat(item.querySelector('.precio-input').value) || 0;
@@ -228,7 +203,6 @@
             const descuentoMonetario = subtotal * (descuento / 100);
             const total = subtotal - descuentoMonetario;
 
-            // Actualizar los valores en pantalla
             document.getElementById('subtotalVenta').textContent = formatoMoneda.format(subtotal);
             document.getElementById('descuentoAplicado').textContent = formatoMoneda.format(descuentoMonetario);
             document.getElementById('porcentajeDescuento').textContent = descuento;
@@ -236,39 +210,27 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Verificar si ya hay productos (en caso de error de validación)
-            const container = document.getElementById("productosContainer");
-            if (container.children.length === 0) {
-                agregarProducto();
-            } else {
-                // Si hay productos, configurar eventos y calcular totales
-                document.querySelectorAll('.producto-item').forEach(item => {
-                    const precioInput = item.querySelector('.precio-input');
-                    const cantidadInput = item.querySelector('.cantidad-input');
-                    const totalInput = item.querySelector('.total-producto');
-
-                    const calcularTotalProducto = () => {
-                        const cantidad = parseFloat(cantidadInput.value) || 0;
-                        const precio = parseFloat(precioInput.value) || 0;
-                        totalInput.value = formatoMoneda.format(cantidad * precio);
-                        actualizarTotalVenta();
-                    };
-
-                    precioInput.addEventListener('input', calcularTotalProducto);
-                    cantidadInput.addEventListener('input', calcularTotalProducto);
-
-                    // Calcular valor inicial
-                    calcularTotalProducto();
-                });
-            }
-
-            // Convertir placa a mayúsculas
-            document.getElementById('placaInput').addEventListener('input', function () {
+            document.getElementById('placaInput')?.addEventListener('input', function () {
                 this.value = this.value.toUpperCase();
             });
 
-            // Actualizar total cuando cambia el descuento
             document.getElementById('descuentoInput').addEventListener('input', actualizarTotalVenta);
+            
+            // Configurar eventos para productos existentes
+            document.querySelectorAll('.producto-item').forEach(item => {
+                const precioInput = item.querySelector('.precio-input');
+                const cantidadInput = item.querySelector('.cantidad-input');
+                
+                const calcularTotalProducto = () => {
+                    const cantidad = parseFloat(cantidadInput.value) || 0;
+                    const precio = parseFloat(precioInput.value) || 0;
+                    item.querySelector('.total-producto').value = formatoMoneda.format(cantidad * precio);
+                    actualizarTotalVenta();
+                };
+
+                precioInput.addEventListener('input', calcularTotalProducto);
+                cantidadInput.addEventListener('input', calcularTotalProducto);
+            });
         });
     </script>
 
@@ -276,12 +238,10 @@
         .producto-item {
             background-color: #f8f9fa;
         }
-
         .total-producto {
             font-weight: bold;
             background-color: #e9ecef;
         }
-
         #totalVenta {
             font-weight: bold;
             color: #0d6efd;
@@ -290,5 +250,4 @@
     </style>
 }
 
-<!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">

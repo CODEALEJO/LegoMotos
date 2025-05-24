@@ -55,63 +55,29 @@ namespace LavaderoMotos.Controllers
         {
             try
             {
+                // Normalizar valores antes de validar
+                if (venta.Productos != null)
+                {
+                    foreach (var producto in venta.Productos)
+                    {
+                        producto.Precio = Math.Round(producto.Precio, 2);
+                    }
+                }
+
                 if (ModelState.IsValid)
                 {
-                    // Eliminar productos duplicados antes de procesar
-                    if (venta.Productos != null)
-                    {
-                        venta.Productos = venta.Productos
-                            .GroupBy(p => p.Producto)
-                            .Select(g => new ProductoVenta
-                            {
-                                Producto = g.Key,
-                                Cantidad = g.Sum(p => p.Cantidad),
-                                Precio = g.First().Precio
-                            })
-                            .ToList();
-                    }
-
-                    // Si no se especificó fecha, usar la actual
-                    if (venta.Fecha == default)
-                    {
-                        venta.Fecha = DateTime.Now;
-                    }
-
-                    // Validar que haya al menos un producto
-                    if (venta.Productos == null || venta.Productos.Count == 0)
-                    {
-                        TempData["ErrorMessage"] = "Debe agregar al menos un producto";
-                        return View(venta);
-                    }
-
-                    // Validar stock
-                    var productosConStockInsuficiente = new List<string>();
-                    foreach (var productoVenta in venta.Productos)
-                    {
-                        var productoInventario = _ventaService.ObtenerProductoInventario(productoVenta.Producto);
-
-                        if (productoInventario == null)
+                    // Eliminar productos duplicados
+                    venta.Productos = venta.Productos?
+                        .GroupBy(p => p.Producto)
+                        .Select(g => new ProductoVenta
                         {
-                            TempData["ErrorMessage"] = $"Producto '{productoVenta.Producto}' no encontrado en inventario";
-                            return View(venta);
-                        }
+                            Producto = g.Key,
+                            Cantidad = g.Sum(p => p.Cantidad),
+                            Precio = Math.Round(g.First().Precio, 2)
+                        })
+                        .ToList();
 
-                        if (productoInventario.Cantidad < productoVenta.Cantidad)
-                        {
-                            productosConStockInsuficiente.Add($"{productoVenta.Producto} (Stock: {productoInventario.Cantidad}, Pedido: {productoVenta.Cantidad})");
-                        }
-                    }
-
-                    if (productosConStockInsuficiente.Any())
-                    {
-                        TempData["ErrorMessage"] = "Stock insuficiente para:<br>" +
-                            string.Join("<br>", productosConStockInsuficiente);
-                        return View(venta);
-                    }
-
-                    // Si todo está bien, crear la venta
                     _ventaService.CrearConControlInventario(venta);
-
                     TempData["SuccessMessage"] = "Venta creada exitosamente!";
                     return RedirectToAction("Index");
                 }
@@ -142,35 +108,30 @@ namespace LavaderoMotos.Controllers
         [HttpPost]
         public IActionResult Edit(Venta venta)
         {
-            if (venta.Productos == null || !venta.Productos.Any())
+            try
             {
-                ModelState.AddModelError("", "La venta debe tener al menos un producto");
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                // Normalizar valores
+                foreach (var producto in venta.Productos)
                 {
-                    // Asegurar que los IDs de productos se mantengan
-                    foreach (var producto in venta.Productos)
-                    {
-                        producto.VentaId = venta.Id;
-                    }
+                    producto.Precio = Math.Round(producto.Precio, 2);
+                }
 
+                if (ModelState.IsValid)
+                {
                     _ventaService.Actualizar(venta);
-                    TempData["SuccessMessage"] = "La venta se ha actualizado correctamente.";
+                    TempData["SuccessMessage"] = "Venta actualizada correctamente!";
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error al editar venta");
-                    TempData["ErrorMessage"] = "Ocurrió un error al actualizar la venta";
-                }
+
+                return View(venta);
             }
-
-            return View(venta);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al editar venta");
+                TempData["ErrorMessage"] = "Error al actualizar la venta";
+                return View(venta);
+            }
         }
-
 
         public IActionResult Delete(int id)
         {
