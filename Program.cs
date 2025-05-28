@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using LavaderoMotos.Data;
-using LavaderoMotos.Services;
-using LavaderoMotos.Services.Interfaces;
-using LavaderoMotos.Data; // Asegúrate de que este using sea correcto
 
 // Configuración regional para Colombia
 var cultureInfo = new CultureInfo("es-CO");
@@ -56,7 +53,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     ));
 
 // Registro de servicios personalizados
-builder.Services.AddScoped<IVentaService, VentaService>();
+
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

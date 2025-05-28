@@ -1,84 +1,120 @@
 using LavaderoMotos.Models;
-using LavaderoMotos.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+using LavaderoMotos.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LavaderoMotos.Controllers
 {
     [Authorize]
     public class VentaController : Controller
     {
-        private readonly IVentaService _ventaService;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<VentaController> _logger;
 
-        public VentaController(IVentaService ventaService, ILogger<VentaController> logger)
+        public VentaController(ApplicationDbContext context, ILogger<VentaController> logger)
         {
-            _ventaService = ventaService;
+            _context = context;
             _logger = logger;
         }
 
         public IActionResult Index(DateTime? fecha, string placa)
         {
-            List<Venta> ventas;
+            IQueryable<Venta> query = _context.Ventas.Include(v => v.Productos);
 
             if (fecha.HasValue)
             {
-                ventas = _ventaService.FiltrarPorFecha(fecha.Value);
+                query = query.Where(v => v.Fecha.Date == fecha.Value.Date);
             }
             else if (!string.IsNullOrEmpty(placa))
             {
-                ventas = _ventaService.FiltrarPorPlaca(placa);
-            }
-            else
-            {
-                ventas = _ventaService.ObtenerTodas();
+                query = query.Where(v => v.Placa.Contains(placa));
             }
 
+            var ventas = query.ToList();
             return View(ventas);
         }
 
+
+
         public IActionResult Create()
         {
-            // Inicializa una nueva venta con la lista de productos vacía
-            var venta = new Venta
-            {
-                Productos = new List<ProductoVenta>() // Asegura que Productos no sea null
-            };
-            return View(venta);
+            return View(new Venta { Productos = new List<ProductoVenta>() });
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Venta venta)
+        public async Task<IActionResult> Create(Venta venta)
         {
             try
             {
-                // Normalizar valores antes de validar
-                if (venta.Productos != null)
+                if (venta.Productos == null || venta.Productos.Count == 0)
                 {
-                    foreach (var producto in venta.Productos)
-                    {
-                        producto.Precio = Math.Round(producto.Precio, 2);
-                    }
+                    TempData["ErrorMessage"] = "Debe agregar al menos un producto";
+                    return View(venta);
+                }
+
+                // Normalización de valores
+                foreach (var producto in venta.Productos)
+                {
+                    producto.Precio = NormalizarPrecio(producto.Precio);
+                    producto.Cantidad = Convert.ToInt32(producto.Cantidad);
                 }
 
                 if (ModelState.IsValid)
                 {
-                    // Eliminar productos duplicados
-                    venta.Productos = venta.Productos?
-                        .GroupBy(p => p.Producto)
-                        .Select(g => new ProductoVenta
-                        {
-                            Producto = g.Key,
-                            Cantidad = g.Sum(p => p.Cantidad),
-                            Precio = Math.Round(g.First().Precio, 2)
-                        })
-                        .ToList();
+                    var executionStrategy = _context.Database.CreateExecutionStrategy();
 
-                    _ventaService.CrearConControlInventario(venta);
-                    TempData["SuccessMessage"] = "Venta creada exitosamente!";
+                    await executionStrategy.ExecuteAsync(async () =>
+                    {
+                        using var transaction = await _context.Database.BeginTransactionAsync();
+                        try
+                        {
+                            // Consolidar productos duplicados
+                            venta.Productos = venta.Productos
+                                .GroupBy(p => p.Producto)
+                                .Select(g => new ProductoVenta
+                                {
+                                    Producto = g.Key,
+                                    Cantidad = g.Sum(p => p.Cantidad),
+                                    Precio = Math.Round(g.First().Precio, 2, MidpointRounding.AwayFromZero)
+                                })
+                                .ToList();
+
+                            // Validar y actualizar inventario
+                            foreach (var producto in venta.Productos)
+                            {
+                                var productoInventario = await _context.Productos
+                                    .FirstOrDefaultAsync(p => p.Nombre.ToLower() == producto.Producto.ToLower());
+
+                                if (productoInventario == null)
+                                    throw new Exception($"Producto '{producto.Producto}' no encontrado");
+
+                                if (productoInventario.Cantidad < producto.Cantidad)
+                                    throw new Exception($"Stock insuficiente para '{producto.Producto}'");
+
+                                productoInventario.Cantidad -= producto.Cantidad;
+                                _context.Productos.Update(productoInventario);
+                            }
+
+                            // Guardar la venta
+                            venta.Fecha = venta.Fecha == default ? DateTime.Now : venta.Fecha;
+                            await _context.Ventas.AddAsync(venta);
+                            await _context.SaveChangesAsync();
+
+                            await transaction.CommitAsync();
+                            TempData["SuccessMessage"] = "Venta creada exitosamente!";
+                        }
+                        catch (Exception ex)
+                        {
+                            await transaction.RollbackAsync();
+                            TempData["ErrorMessage"] = $"Error al crear la venta: {ex.Message}";
+                            throw; // Re-lanzar la excepción para que la estrategia de reintento la maneje
+                        }
+                    });
+
                     return RedirectToAction("Index");
                 }
 
@@ -88,15 +124,14 @@ namespace LavaderoMotos.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear venta");
-                TempData["ErrorMessage"] = $"Error al crear la venta: {ex.GetBaseException().Message}";
+                TempData["ErrorMessage"] = $"Error al crear la venta: {ex.Message}";
                 return View(venta);
             }
         }
 
-
         public IActionResult Edit(int id)
         {
-            var venta = _ventaService.ObtenerPorId(id);
+            var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
             if (venta == null)
             {
                 _logger.LogWarning($"Venta con ID {id} no encontrada");
@@ -104,6 +139,10 @@ namespace LavaderoMotos.Controllers
             }
             return View(venta);
         }
+
+
+
+
 
         [HttpPost]
         public IActionResult Edit(Venta venta)
@@ -113,14 +152,57 @@ namespace LavaderoMotos.Controllers
                 // Normalizar valores
                 foreach (var producto in venta.Productos)
                 {
-                    producto.Precio = Math.Round(producto.Precio, 2);
+                    producto.Precio = NormalizarPrecio(producto.Precio);
                 }
 
                 if (ModelState.IsValid)
                 {
-                    _ventaService.Actualizar(venta);
-                    TempData["SuccessMessage"] = "Venta actualizada correctamente!";
-                    return RedirectToAction("Index");
+                    var existente = _context.Ventas.Include(v => v.Productos)
+                        .FirstOrDefault(v => v.Id == venta.Id);
+
+                    if (existente != null)
+                    {
+                        // Actualizar propiedades básicas
+                        existente.Placa = venta.Placa;
+                        existente.Kilometraje = venta.Kilometraje;
+                        existente.Descuento = venta.Descuento;
+                        existente.Fecha = venta.Fecha;
+
+                        // Manejar productos
+                        foreach (var producto in venta.Productos)
+                        {
+                            if (producto.Id > 0) // Producto existente
+                            {
+                                var productoExistente = existente.Productos
+                                    .FirstOrDefault(p => p.Id == producto.Id);
+
+                                if (productoExistente != null)
+                                {
+                                    productoExistente.Producto = producto.Producto;
+                                    productoExistente.Cantidad = producto.Cantidad;
+                                    productoExistente.Precio = producto.Precio;
+                                }
+                            }
+                            else // Nuevo producto
+                            {
+                                existente.Productos.Add(producto);
+                            }
+                        }
+
+                        // Eliminar productos que no están en la lista actualizada
+                        var idsProductosActualizados = venta.Productos.Select(p => p.Id).ToList();
+                        foreach (var productoExistente in existente.Productos.ToList())
+                        {
+                            if (!idsProductosActualizados.Contains(productoExistente.Id))
+                            {
+                                _context.ProductosVenta.Remove(productoExistente);
+                            }
+                        }
+
+                        _context.SaveChanges();
+                        TempData["SuccessMessage"] = "Venta actualizada correctamente!";
+                        return RedirectToAction("Index");
+                    }
                 }
 
                 return View(venta);
@@ -135,7 +217,7 @@ namespace LavaderoMotos.Controllers
 
         public IActionResult Delete(int id)
         {
-            var venta = _ventaService.ObtenerPorId(id);
+            var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
             if (venta == null)
             {
                 _logger.LogWarning($"Venta con ID {id} no encontrada para eliminar");
@@ -144,7 +226,6 @@ namespace LavaderoMotos.Controllers
             return View(venta);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Delete")]
@@ -152,15 +233,18 @@ namespace LavaderoMotos.Controllers
         {
             try
             {
-                var venta = _ventaService.ObtenerPorId(id);
+                var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
                 if (venta == null)
                 {
                     _logger.LogWarning($"Venta con ID {id} no encontrada");
                     return NotFound();
                 }
 
-                _ventaService.Eliminar(id);
-                _logger.LogInformation($"Venta ID {id} eliminada correctamente");
+                // Primero eliminar los productos relacionados
+                _context.ProductosVenta.RemoveRange(venta.Productos);
+                // Luego eliminar la venta
+                _context.Ventas.Remove(venta);
+                _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "La venta se ha eliminado correctamente.";
                 return RedirectToAction(nameof(Index));
@@ -175,7 +259,7 @@ namespace LavaderoMotos.Controllers
 
         public IActionResult Print(int id)
         {
-            var venta = _ventaService.ObtenerPorId(id);
+            var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
             if (venta == null)
             {
                 _logger.LogWarning($"Venta con ID {id} no encontrada para imprimir");
@@ -189,6 +273,30 @@ namespace LavaderoMotos.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private decimal NormalizarPrecio(object precio)
+        {
+            if (precio == null) return 0;
+
+            // Si ya es decimal, devolverlo directamente
+            if (precio is decimal decimalValue)
+            {
+                return decimalValue;
+            }
+
+            // Si es string, parsearlo conservando el formato original
+            var precioStr = precio.ToString();
+
+            // Reemplazar comas por puntos si es necesario (para culturas que usan coma como separador decimal)
+            precioStr = precioStr.Replace(",", ".");
+
+            if (decimal.TryParse(precioStr, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+            {
+                return result;
+            }
+
+            return 0;
         }
     }
 }

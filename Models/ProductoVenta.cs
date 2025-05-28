@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 
 namespace LavaderoMotos.Models
 {
@@ -24,7 +25,15 @@ namespace LavaderoMotos.Models
         [ForeignKey("VentaId")]
         public Venta? Venta { get; set; }
 
+        // Modificar el cálculo del Total para manejar redondeo consistente
         [NotMapped]
-        public decimal Total => Cantidad * Precio;
+        public decimal Total => Math.Round(Cantidad * Precio, 2, MidpointRounding.AwayFromZero);
+
+
+        [NotMapped]
+        public string TotalFormateado => Total.ToString("N0", CultureInfo.InvariantCulture);
+
+        [NotMapped]
+        public string PrecioFormateado => Precio.ToString("N0", CultureInfo.InvariantCulture);
     }
 }

@@ -1,253 +1,259 @@
+
+@using System.Globalization
 @model LavaderoMotos.Models.Venta
+
 @{
-    ViewData["Title"] = "Crear Venta";
+    ViewData["Title"] = "Crear Nueva Venta";
 }
 
 <div class="container mt-4">
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    <h2>@ViewData["Title"]</h2>
+    <hr />
+
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
+        <div class="alert alert-danger">
             @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <h2>Crear Venta</h2>
-
-    <form asp-action="Create" method="post" id="ventaForm">
-        @Html.AntiForgeryToken()
+    <form asp-action="Create" id="ventaForm">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row">
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label asp-for="Placa" class="form-label"></label>
-                    <input asp-for="Placa" class="form-control" id="placaInput" />
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Placa" class="control-label"></label>
+                    <input asp-for="Placa" class="form-control" />
                     <span asp-validation-for="Placa" class="text-danger"></span>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label asp-for="Kilometraje" class="form-label"></label>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Kilometraje" class="control-label"></label>
                     <input asp-for="Kilometraje" class="form-control" />
                     <span asp-validation-for="Kilometraje" class="text-danger"></span>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label asp-for="Fecha" class="form-label">Fecha de Venta</label>
-                    <input asp-for="Fecha" type="datetime-local" class="form-control"
-                           value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Fecha" class="control-label"></label>
+                    <input asp-for="Fecha" class="form-control" type="datetime-local" />
                     <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
             </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Descuento" class="control-label"></label>
+                    <input asp-for="Descuento" class="form-control" type="text" inputmode="decimal" />
+                    <span asp-validation-for="Descuento" class="text-danger"></span>
+                </div>
+            </div>
         </div>
 
-        <hr />
-        <h4>Productos</h4>
+        <h4 class="mt-4">Productos</h4>
         <div id="productosContainer">
-            <div class="producto-item mb-3 border p-3 rounded">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label">Producto</label>
-                        <input name="Productos[0].Producto" class="form-control producto-input" required />
-                        <span asp-validation-for="Productos[0].Producto" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Cantidad</label>
-                        <input name="Productos[0].Cantidad" type="number" min="1" value="1" 
-                               class="form-control cantidad-input" required />
-                        <span asp-validation-for="Productos[0].Cantidad" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Precio Unitario</label>
-                        <input name="Productos[0].Precio" type="number" step="0.01" 
-                               class="form-control precio-input" required />
-                        <span asp-validation-for="Productos[0].Precio" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Total</label>
-                        <input type="text" class="form-control total-producto" readonly />
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
-                    </div>
-                </div>
-                <input type="hidden" name="Productos[0].Id" value="0" />
-            </div>
-        </div>
-
-        <button type="button" class="btn btn-outline-primary mb-3" onclick="agregarProducto()">
-            <i class="bi bi-plus-circle"></i> Agregar Producto
-        </button>
-
-        <div class="card mt-3">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="Descuento" class="form-label">Descuento (%)</label>
-                            <input asp-for="Descuento" type="number" min="0" max="100" step="1" 
-                                   class="form-control" id="descuentoInput" value="0" />
-                            <span asp-validation-for="Descuento" class="text-danger"></span>
+            @if (Model.Productos != null && Model.Productos.Count > 0)
+            {
+                for (int i = 0; i < Model.Productos.Count; i++)
+                {
+                    <div class="producto-item row mb-3">
+                        <div class="col-md-4">
+                            <label class="control-label">Producto</label>
+                            <input name="Productos[@i].Producto" class="form-control producto-autocomplete" value="@Model.Productos[i].Producto" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="control-label">Cantidad</label>
+                            <input name="Productos[@i].Cantidad" type="number" class="form-control cantidad" value="@Model.Productos[i].Cantidad" min="1" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="control-label">Precio Unitario</label>
+                            <input name="Productos[@i].Precio" class="form-control precio" type="text" inputmode="decimal" value="@Model.Productos[i].Precio.ToString(CultureInfo.InvariantCulture)" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="control-label">Subtotal</label>
+                            <input class="form-control subtotal" readonly />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-remove-producto">Eliminar</button>
                         </div>
                     </div>
-                    <div class="col-md-8">
-                        <div class="text-end">
-                            <h5>Subtotal: <span id="subtotalVenta">0</span></h5>
-                            <h5>Descuento: <span id="descuentoAplicado">0</span> (<span id="porcentajeDescuento">0</span>%)</h5>
-                            <h4>Total Venta: <span id="totalVenta">0</span></h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                }
+            }
         </div>
 
-        <div class="mt-3">
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-save"></i> Guardar Venta
-            </button>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Cancelar
-            </a>
+        <div class="form-group mt-3">
+            <button type="button" id="btnAddProducto" class="btn btn-secondary">Agregar Producto</button>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <input type="submit" value="Guardar Venta" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+            <div class="col-md-6 text-right">
+                <h4>Total: <span id="totalVenta">0.00</span></h4>
+            </div>
         </div>
     </form>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
     <script>
-        let productoIndex = 0;
-        const formatoMoneda = new Intl.NumberFormat('es-CO', {
-            style: 'decimal',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        });
-
-        function agregarProducto() {
-            const container = document.getElementById("productosContainer");
-            const divProducto = document.createElement("div");
-            divProducto.className = "producto-item mb-3 border p-3 rounded";
-            divProducto.innerHTML = `
-                <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label">Producto</label>
-                        <input name="Productos[${productoIndex}].Producto" class="form-control producto-input" required />
-                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Cantidad</label>
-                        <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad-input" required />
-                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Precio Unitario</label>
-                        <input name="Productos[${productoIndex}].Precio" type="number" step="0.01" class="form-control precio-input" required />
-                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Total</label>
-                        <input type="text" class="form-control total-producto" readonly />
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
-                    </div>
-                </div>
-                <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
-            `;
-            container.appendChild(divProducto);
-
-            const precioInput = divProducto.querySelector('.precio-input');
-            const cantidadInput = divProducto.querySelector('.cantidad-input');
-            const totalInput = divProducto.querySelector('.total-producto');
-
-            const calcularTotalProducto = () => {
-                const cantidad = parseFloat(cantidadInput.value) || 0;
-                const precio = parseFloat(precioInput.value) || 0;
-                totalInput.value = formatoMoneda.format(cantidad * precio);
-                actualizarTotalVenta();
-            };
-
-            precioInput.addEventListener('input', calcularTotalProducto);
-            cantidadInput.addEventListener('input', calcularTotalProducto);
-
-            $.validator.unobtrusive.parse(divProducto);
-            productoIndex++;
-        }
-
-        function eliminarProducto(button) {
-            const productoItem = button.closest('.producto-item');
-            productoItem.remove();
-            actualizarTotalVenta();
-        }
-
-        function actualizarTotalVenta() {
-            let subtotal = 0;
-            document.querySelectorAll('.producto-item').forEach(item => {
-                const cantidad = parseFloat(item.querySelector('.cantidad-input').value) || 0;
-                const precio = parseFloat(item.querySelector('.precio-input').value) || 0;
-                subtotal += cantidad * precio;
-            });
-
-            const descuento = parseFloat(document.getElementById('descuentoInput').value) || 0;
-            const descuentoMonetario = subtotal * (descuento / 100);
-            const total = subtotal - descuentoMonetario;
-
-            document.getElementById('subtotalVenta').textContent = formatoMoneda.format(subtotal);
-            document.getElementById('descuentoAplicado').textContent = formatoMoneda.format(descuentoMonetario);
-            document.getElementById('porcentajeDescuento').textContent = descuento;
-            document.getElementById('totalVenta').textContent = formatoMoneda.format(total);
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('placaInput')?.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
-
-            document.getElementById('descuentoInput').addEventListener('input', actualizarTotalVenta);
+        $(document).ready(function() {
+            // Contador para nuevos productos
+            let productoIndex = @(Model.Productos?.Count ?? 0);
             
-            // Configurar eventos para productos existentes
-            document.querySelectorAll('.producto-item').forEach(item => {
-                const precioInput = item.querySelector('.precio-input');
-                const cantidadInput = item.querySelector('.cantidad-input');
+            // Agregar nuevo producto
+            $('#btnAddProducto').click(function() {
+                const newProductoHtml = `
+                    <div class="producto-item row mb-3">
+                        <div class="col-md-4">
+                            <label class="control-label">Producto</label>
+                            <input name="Productos[${productoIndex}].Producto" class="form-control producto-autocomplete" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="control-label">Cantidad</label>
+                            <input name="Productos[${productoIndex}].Cantidad" type="number" class="form-control cantidad" value="1" min="1" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="control-label">Precio Unitario</label>
+                            <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal" />
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="control-label">Subtotal</label>
+                            <input class="form-control subtotal" readonly />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-remove-producto">Eliminar</button>
+                        </div>
+                    </div>
+                `;
                 
-                const calcularTotalProducto = () => {
-                    const cantidad = parseFloat(cantidadInput.value) || 0;
-                    const precio = parseFloat(precioInput.value) || 0;
-                    item.querySelector('.total-producto').value = formatoMoneda.format(cantidad * precio);
-                    actualizarTotalVenta();
-                };
-
-                precioInput.addEventListener('input', calcularTotalProducto);
-                cantidadInput.addEventListener('input', calcularTotalProducto);
+                $('#productosContainer').append(newProductoHtml);
+                productoIndex++;
+                
+                // Inicializar autocomplete para el nuevo campo
+                initAutocomplete($('#productosContainer .producto-autocomplete').last());
+                
+                // Recalcular total
+                calcularTotal();
+            });
+            
+            // Eliminar producto
+            $(document).on('click', '.btn-remove-producto', function() {
+                $(this).closest('.producto-item').remove();
+                recalcularIndices();
+                calcularTotal();
+            });
+            
+            // Calcular subtotal y total cuando cambian cantidades o precios
+            $(document).on('input', '.cantidad, .precio', function() {
+                const productoItem = $(this).closest('.producto-item');
+                const cantidad = parseFloat(productoItem.find('.cantidad').val()) || 0;
+                const precioInput = productoItem.find('.precio');
+                
+                // Manejar el valor del precio como texto y convertirlo correctamente
+                const precioStr = precioInput.val().replace(',', '.');
+                const precio = parseFloat(precioStr) || 0;
+                
+                const subtotal = cantidad * precio;
+                
+                productoItem.find('.subtotal').val(subtotal.toFixed(2));
+                calcularTotal();
+            });
+            
+            // Función para calcular el total
+            function calcularTotal() {
+                let total = 0;
+                
+                $('.producto-item').each(function() {
+                    const subtotal = parseFloat($(this).find('.subtotal').val()) || 0;
+                    total += subtotal;
+                });
+                
+                // Aplicar descuento si existe
+                const descuentoStr = $('#Descuento').val().replace(',', '.');
+                const descuento = parseFloat(descuentoStr) || 0;
+                total -= descuento;
+                
+                $('#totalVenta').text(total.toFixed(2));
+            }
+            
+            // Recalcular índices después de eliminar un producto
+            function recalcularIndices() {
+                productoIndex = 0;
+                $('.producto-item').each(function(index) {
+                    $(this).find('input').each(function() {
+                        const name = $(this).attr('name');
+                        if (name) {
+                            $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
+                        }
+                    });
+                    productoIndex++;
+                });
+            }
+            
+            // Autocomplete para productos
+            function initAutocomplete(element) {
+                element.autocomplete({
+                    source: function(request, response) {
+                        $.getJSON('@Url.Action("BuscarProductos", "Producto")', { term: request.term }, function(data) {
+                            response(data);
+                        });
+                    },
+                    minLength: 2,
+                    select: function(event, ui) {
+                        // Cuando se selecciona un producto, podemos cargar su precio
+                        const productoItem = $(this).closest('.producto-item');
+                        productoItem.find('.precio').val(ui.item.precio.toString().replace(',', '.'));
+                        
+                        // Disparar evento para calcular subtotal
+                        productoItem.find('.precio').trigger('input');
+                    }
+                });
+            }
+            
+            // Inicializar autocomplete para productos existentes
+            $('.producto-autocomplete').each(function() {
+                initAutocomplete($(this));
+            });
+            
+            // Calcular total inicial
+            calcularTotal();
+            
+            // Validar formulario antes de enviar
+            $('#ventaForm').submit(function(e) {
+                if ($('.producto-item').length === 0) {
+                    e.preventDefault();
+                    alert('Debe agregar al menos un producto');
+                    return false;
+                }
+                
+                // Asegurar que todos los precios tengan formato correcto
+                $('.precio').each(function() {
+                    const valueStr = $(this).val().replace(',', '.');
+                    const value = parseFloat(valueStr);
+                    if (!isNaN(value)) {
+                        $(this).val(valueStr);
+                    }
+                });
+                
+                return true;
             });
         });
     </script>
-
-    <style>
-        .producto-item {
-            background-color: #f8f9fa;
-        }
-        .total-producto {
-            font-weight: bold;
-            background-color: #e9ecef;
-        }
-        #totalVenta {
-            font-weight: bold;
-            color: #0d6efd;
-            font-size: 1.2rem;
-        }
-    </style>
 }
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">

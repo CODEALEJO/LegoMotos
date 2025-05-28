@@ -22,18 +22,13 @@ namespace LavaderoMotos.Data
         {
             base.OnModelCreating(modelBuilder); // Necesario para Identity
 
-            // Tus configuraciones personalizadas
             modelBuilder.Entity<ProductoVenta>()
-                .HasOne(p => p.Venta)
-                .WithMany(v => v.Productos)
-                .HasForeignKey(p => p.VentaId)
-                .OnDelete(DeleteBehavior.Cascade);
+                   .Property(p => p.Precio)
+                   .HasColumnType("decimal(18,2)");
 
-
-            modelBuilder.Entity<ProductoVenta>()
-                .Property(p => p.Precio)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Venta>()
+                .Property(v => v.Descuento)
+                .HasColumnType("decimal(5,2)");
         }
     }
 }
