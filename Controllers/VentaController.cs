@@ -298,5 +298,36 @@ namespace LavaderoMotos.Controllers
 
             return 0;
         }
+
+        
+[HttpGet]
+public async Task<IActionResult> ObtenerProductosDisponibles()
+{
+    var productos = await _context.Productos
+        .Where(p => p.Cantidad > 0)
+        .OrderBy(p => p.Nombre)
+        .Select(p => new {
+            nombre = p.Nombre,
+            cantidad = p.Cantidad,
+            precioVenta = p.PrecioVenta
+        })
+        .ToListAsync();
+
+    return Json(productos);
+}
+
+[HttpGet]
+public async Task<IActionResult> ObtenerPrecioProducto(string nombre)
+{
+    var producto = await _context.Productos
+        .FirstOrDefaultAsync(p => p.Nombre == nombre);
+
+    if (producto == null)
+    {
+        return Json(new { precioVenta = 0 });
+    }
+
+    return Json(new { precioVenta = producto.PrecioVenta });
+}
     }
 }

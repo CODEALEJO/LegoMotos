@@ -55,7 +55,9 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <label class="form-label">Producto</label>
-                                <input asp-for="Productos[i].Producto" class="form-control producto-autocomplete" required />
+                                <select asp-for="Productos[i].Producto" class="form-control select-producto" required>
+                                    <option value="">Seleccione un producto</option>
+                                </select>
                                 <span asp-validation-for="Productos[i].Producto" class="text-danger"></span>
                             </div>
                             <div class="col-md-2">
@@ -67,7 +69,7 @@
                             <div class="col-md-3">
                                 <label class="form-label">Precio Unitario</label>
                                 <input asp-for="Productos[i].Precio" type="text" inputmode="decimal" 
-                                       class="form-control precio" required />
+                                       class="form-control precio" required readonly />
                                 <span asp-validation-for="Productos[i].Precio" class="text-danger"></span>
                             </div>
                             <div class="col-md-2">
@@ -115,7 +117,7 @@
             <button type="submit" class="btn btn-success">
                 <i class="bi bi-save"></i> Guardar Venta
             </button>
-            <a asp-action="Index" class="btn btn-secondary">
+            <a asp-action="Index" class="btn btn-danger">
                 <i class="bi bi-arrow-left"></i> Cancelar
             </a>
         </div>
@@ -142,6 +144,30 @@
                 this.value = this.value.toUpperCase();
             });
             
+            // Función para cargar productos disponibles
+            function cargarProductosDisponibles(selectElement) {
+                $.get('@Url.Action("ObtenerProductosDisponibles", "Venta")', function(data) {
+                    selectElement.empty();
+                    selectElement.append('<option value="">Seleccione un producto</option>');
+                    
+                    data.forEach(function(producto) {
+                        selectElement.append(new Option(
+                            `${producto.nombre} (Disponibles: ${producto.cantidad})`, 
+                            producto.nombre,
+                            false, 
+                            false
+                        ));
+                    });
+                });
+            }
+            
+            // Función para obtener el precio de un producto
+            function obtenerPrecioProducto(nombreProducto, callback) {
+                $.get('@Url.Action("ObtenerPrecioProducto", "Venta")', { nombre: nombreProducto }, function(data) {
+                    callback(data.precioVenta);
+                });
+            }
+            
             // Agregar nuevo producto
             $('#btnAddProducto').click(function() {
                 const newProductoHtml = `
@@ -149,7 +175,9 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <label class="form-label">Producto</label>
-                                <input name="Productos[${productoIndex}].Producto" class="form-control producto-autocomplete" required />
+                                <select name="Productos[${productoIndex}].Producto" class="form-control select-producto" required>
+                                    <option value="">Seleccione un producto</option>
+                                </select>
                                 <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
                             </div>
                             <div class="col-md-2">
@@ -159,7 +187,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Precio Unitario</label>
-                                <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal" required />
+                                <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal" required readonly />
                                 <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
                             </div>
                             <div class="col-md-2">
@@ -176,10 +204,12 @@
                 `;
                 
                 $('#productosContainer').append(newProductoHtml);
-                productoIndex++;
                 
-                // Inicializar autocomplete para el nuevo campo
-                initAutocomplete($('#productosContainer .producto-autocomplete').last());
+                // Cargar productos en el select recién creado
+                const nuevoSelect = $('#productosContainer .select-producto').last();
+                cargarProductosDisponibles(nuevoSelect);
+                
+                productoIndex++;
                 
                 // Recalcular total
                 calcularTotal();
@@ -195,21 +225,48 @@
                 calcularTotal();
             });
             
-            // Calcular subtotal y total cuando cambian cantidades o precios
-            $(document).on('input', '.cantidad, .precio', function() {
+            // Manejar cambio de producto
+            $(document).on('change', '.select-producto', function() {
                 const productoItem = $(this).closest('.producto-item');
+                const productoSeleccionado = $(this).val();
+                
+                if (productoSeleccionado) {
+                    obtenerPrecioProducto(productoSeleccionado, function(precio) {
+                        const precioInput = productoItem.find('.precio');
+                        precioInput.val(formatoMoneda.format(precio));
+                        
+                        // Actualizar cantidad máxima disponible
+                        const cantidadInput = productoItem.find('.cantidad');
+                        const optionSeleccionada = $(this).find('option:selected');
+                        const cantidadDisponible = parseInt(optionSeleccionada.text().match(/Disponibles: (\d+)/)[1]);
+                        cantidadInput.attr('max', cantidadDisponible);
+                        
+                        // Calcular subtotal
+                        calcularSubtotal(productoItem);
+                    });
+                } else {
+                    productoItem.find('.precio').val('');
+                    productoItem.find('.cantidad').val('1');
+                    productoItem.find('.subtotal').val('');
+                }
+            });
+            
+            // Calcular subtotal cuando cambia la cantidad
+            $(document).on('input', '.cantidad', function() {
+                const productoItem = $(this).closest('.producto-item');
+                calcularSubtotal(productoItem);
+            });
+            
+            // Función para calcular subtotal de un producto
+            function calcularSubtotal(productoItem) {
                 const cantidad = parseFloat(productoItem.find('.cantidad').val()) || 0;
-                const precioInput = productoItem.find('.precio');
-                
-                // Manejar el valor del precio como texto y convertirlo correctamente
-                const precioStr = precioInput.val().replace(/\./g, '').replace(',', '.');
+                const precioStr = productoItem.find('.precio').val().replace(/\./g, '');
                 const precio = parseFloat(precioStr) || 0;
-                
                 const subtotal = cantidad * precio;
                 
                 productoItem.find('.subtotal').val(formatoMoneda.format(subtotal));
                 calcularTotal();
-            });
+            }
             
             // Función para calcular el total
             function calcularTotal() {
@@ -236,7 +293,7 @@
             function recalcularIndices() {
                 productoIndex = 0;
                 $('.producto-item').each(function(index) {
-                    $(this).find('input').each(function() {
+                    $(this).find('input, select').each(function() {
                         const name = $(this).attr('name');
                         if (name) {
                             $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
@@ -246,55 +303,19 @@
                 });
             }
             
-            // Autocomplete para productos
-            function initAutocomplete(element) {
-                element.autocomplete({
-                    source: function(request, response) {
-                        $.ajax({
-                            url: '@Url.Action("BuscarProductos", "Producto")',
-                            type: 'GET',
-                            dataType: 'json',
-                            data: { term: request.term },
-                            success: function(data) {
-                                response($.map(data, function(item) {
-                                    return {
-                                        label: item.nombre + " (Disponibles: " + item.cantidad + ")",
-                                        value: item.nombre,
-                                        precio: item.precioVenta,
-                                        cantidadDisponible: item.cantidad
-                                    };
-                                }));
-                            }
-                        });
-                    },
-                    minLength: 2,
-                    select: function(event, ui) {
-                        // Cuando se selecciona un producto, cargar su precio
+            // Cargar productos disponibles en los selects existentes al cargar la página
+            $('.select-producto').each(function() {
+                cargarProductosDisponibles($(this));
+                
+                // Si ya hay un producto seleccionado (en caso de edición), cargar su precio
+                const productoSeleccionado = $(this).val();
+                if (productoSeleccionado) {
+                    obtenerPrecioProducto(productoSeleccionado, function(precio) {
                         const productoItem = $(this).closest('.producto-item');
-                        productoItem.find('.precio').val(ui.item.precio.toString().replace('.', ','));
-                        
-                        // Establecer la cantidad máxima disponible
-                        const cantidadInput = productoItem.find('.cantidad');
-                        cantidadInput.attr('max', ui.item.cantidadDisponible);
-                        
-                        // Disparar evento para calcular subtotal
-                        productoItem.find('.precio').trigger('input');
-                    },
-                    focus: function(event, ui) {
-                        // Mostrar el nombre del producto al enfocar
-                        $(this).val(ui.item.value);
-                        return false;
-                    }
-                }).autocomplete("instance")._renderItem = function(ul, item) {
-                    return $("<li>")
-                        .append(`<div>${item.label} - $${formatoMoneda.format(item.precio)}</div>`)
-                        .appendTo(ul);
-                };
-            }
-            
-            // Inicializar autocomplete para productos existentes
-            $('.producto-autocomplete').each(function() {
-                initAutocomplete($(this));
+                        productoItem.find('.precio').val(formatoMoneda.format(precio));
+                        calcularSubtotal(productoItem);
+                    }.bind(this));
+                }
             });
             
             // Calcular total inicial
@@ -330,15 +351,6 @@
                     return false;
                 }
                 
-                // Asegurar que todos los precios tengan formato correcto
-                $('.precio').each(function() {
-                    const valueStr = $(this).val().replace(/\./g, '').replace(',', '.');
-                    const value = parseFloat(valueStr);
-                    if (!isNaN(value)) {
-                        $(this).val(valueStr);
-                    }
-                });
-                
                 return true;
             });
         });
@@ -357,11 +369,8 @@
             color: #0d6efd;
             font-size: 1.2rem;
         }
-        .ui-autocomplete {
-            max-height: 200px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 20px;
+        .select-producto {
+            width: 100%;
         }
     </style>
 }
