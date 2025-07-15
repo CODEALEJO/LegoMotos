@@ -1,11 +1,16 @@
-@using System.Globalization
 @model LavaderoMotos.Models.Venta
-
 @{
-    ViewData["Title"] = "Crear Nueva Venta";
+    ViewData["Title"] = Model.Id == 0 ? "Crear Nueva Venta" : "Editar Venta";
 }
 
 <div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
@@ -16,9 +21,9 @@
 
     <h2>@ViewData["Title"]</h2>
 
-    <form asp-action="Create" method="post" id="ventaForm">
+    <form asp-action="@(Model.Id == 0 ? "Create" : "Edit")" method="post" id="ventaForm">
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
 
         <div class="row">
             <div class="col-md-4">
@@ -38,7 +43,8 @@
             <div class="col-md-4">
                 <div class="mb-3">
                     <label asp-for="Fecha" class="form-label">Fecha de Venta</label>
-                    <input asp-for="Fecha" type="datetime-local" class="form-control" />
+                    <input asp-for="Fecha" type="datetime-local" class="form-control" 
+                           value="@Model.Fecha.ToString("yyyy-MM-ddTHH:mm")" />
                     <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
             </div>
@@ -47,43 +53,43 @@
         <hr />
         <h4>Productos</h4>
         <div id="productosContainer">
-            @if (Model.Productos != null && Model.Productos.Count > 0)
+            @for (int i = 0; i < Model.Productos.Count; i++)
             {
-                for (int i = 0; i < Model.Productos.Count; i++)
-                {
-                    <div class="producto-item mb-3 border p-3 rounded">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">Producto</label>
-                                <select asp-for="Productos[i].Producto" class="form-control select-producto" required>
-                                    <option value="">Seleccione un producto</option>
-                                </select>
-                                <span asp-validation-for="Productos[i].Producto" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Cantidad</label>
-                                <input asp-for="Productos[i].Cantidad" type="number" min="1" 
-                                       class="form-control cantidad" required />
-                                <span asp-validation-for="Productos[i].Cantidad" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Precio Unitario</label>
-                                <input asp-for="Productos[i].Precio" type="text" inputmode="decimal" 
-                                       class="form-control precio" required readonly />
-                                <span asp-validation-for="Productos[i].Precio" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Subtotal</label>
-                                <input class="form-control subtotal" readonly />
-                            </div>
-                            <div class="col-md-1 d-flex align-items-end">
-                                <button type="button" class="btn btn-danger btn-sm btn-remove-producto">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </button>
-                            </div>
+                <div class="producto-item mb-3 border p-3 rounded">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Producto</label>
+                            <select asp-for="Productos[i].Producto" class="form-control select-producto" required>
+                                <option value="">Seleccione un producto</option>
+                            </select>
+                            <span asp-validation-for="Productos[i].Producto" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Cantidad</label>
+                            <input asp-for="Productos[i].Cantidad" type="number" min="1" 
+                                   class="form-control cantidad" required />
+                            <span asp-validation-for="Productos[i].Cantidad" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Precio Unitario</label>
+                            <input asp-for="Productos[i].Precio" type="text" inputmode="decimal" 
+                                   class="form-control precio" required readonly />
+                            <span asp-validation-for="Productos[i].Precio" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Subtotal</label>
+                            <input class="form-control subtotal" readonly 
+                                   value="@((Model.Productos[i].Cantidad * Model.Productos[i].Precio).ToString("N0"))" />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm btn-remove-producto">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
                         </div>
                     </div>
-                }
+                    <input type="hidden" asp-for="Productos[i].Id" />
+                    <input type="hidden" asp-for="Productos[i].VentaId" />
+                </div>
             }
         </div>
 
@@ -104,9 +110,14 @@
                     </div>
                     <div class="col-md-8">
                         <div class="text-end">
-                            <h5>Subtotal: <span id="subtotalVenta">0.00</span></h5>
-                            <h5>Descuento: <span id="descuentoAplicado">0.00</span> (<span id="porcentajeDescuento">0</span>%)</h5>
-                            <h4>Total Venta: <span id="totalVenta">0.00</span></h4>
+                            @{
+                                var subtotal = Model.Productos.Sum(p => p.Cantidad * p.Precio);
+                                var descuento = subtotal * (Model.Descuento / 100);
+                                var total = subtotal - descuento;
+                            }
+                            <h5>Subtotal: <span id="subtotalVenta">@subtotal.ToString("N0")</span></h5>
+                            <h5>Descuento: <span id="descuentoAplicado">@descuento.ToString("N0")</span> (<span id="porcentajeDescuento">@Model.Descuento</span>%)</h5>
+                            <h4>Total Venta: <span id="totalVenta">@total.ToString("N0")</span></h4>
                         </div>
                     </div>
                 </div>
@@ -115,7 +126,7 @@
 
         <div class="mt-3">
             <button type="submit" class="btn btn-success">
-                <i class="bi bi-save"></i> Guardar Venta
+                <i class="bi bi-save"></i> @(Model.Id == 0 ? "Guardar Venta" : "Actualizar Venta")
             </button>
             <a asp-action="Index" class="btn btn-danger">
                 <i class="bi bi-arrow-left"></i> Cancelar
@@ -130,7 +141,7 @@
     <script>
         $(document).ready(function() {
             // Contador para nuevos productos
-            let productoIndex = @(Model.Productos?.Count ?? 0);
+            let productoIndex = @Model.Productos.Count;
             
             // Formateador de moneda
             const formatoMoneda = new Intl.NumberFormat('es-CO', {
@@ -158,6 +169,12 @@
                             false
                         ));
                     });
+
+                    // Seleccionar el valor actual si es edición
+                    const currentValue = selectElement.attr('data-current-value');
+                    if (currentValue) {
+                        selectElement.val(currentValue).trigger('change');
+                    }
                 });
             }
             
@@ -200,6 +217,8 @@
                                 </button>
                             </div>
                         </div>
+                        <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
+                        <input type="hidden" name="Productos[${productoIndex}].VentaId" value="@Model.Id" />
                     </div>
                 `;
                 
@@ -305,6 +324,12 @@
             
             // Cargar productos disponibles en los selects existentes al cargar la página
             $('.select-producto').each(function() {
+                // Guardar el valor actual para seleccionarlo después de cargar
+                const currentValue = $(this).val();
+                if (currentValue) {
+                    $(this).attr('data-current-value', currentValue);
+                }
+                
                 cargarProductosDisponibles($(this));
                 
                 // Si ya hay un producto seleccionado (en caso de edición), cargar su precio

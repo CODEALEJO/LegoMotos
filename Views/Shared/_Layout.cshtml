@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,22 +9,43 @@
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
         }
+
         body {
             display: flex;
             flex-direction: column;
         }
+
         main {
             flex: 1;
+        }
+
+        /* Estilos adicionales para la barra de navegación */
+        .nav-buttons-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .nav-button {
+            margin: 0 8px;
+            padding: 8px 16px;
+        }
+
+        .active-nav-button {
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
+
 <body>
-    @if (ViewContext.RouteData.Values["controller"].ToString() == "Account" && 
-         ViewContext.RouteData.Values["action"].ToString() == "Login")
+    @if (ViewContext.RouteData.Values["controller"].ToString() == "Account" &&
+        ViewContext.RouteData.Values["action"].ToString() == "Login")
     {
         <header>
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
@@ -33,6 +55,29 @@
                 </div>
             </nav>
         </header>
+    }
+    else
+    {
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
+            <div class="container-fluid">
+                <div class="nav-buttons-container">
+                    <a class="nav-button btn btn-outline-primary @(ViewContext.RouteData.Values["controller"].ToString() == "Venta" ? "active-nav-button" : "")"
+                        asp-controller="Venta" asp-action="Index">
+                        Ventas
+                    </a>
+                    <a class="nav-button btn btn-outline-success @(ViewContext.RouteData.Values["controller"].ToString() == "Inventario" ? "active-nav-button" : "")"
+                        asp-controller="Inventario" asp-action="Index">
+                        Inventario
+                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="nav-button btn btn-outline-danger"
+                            style="background:danger; border:danger;">
+                            Cerrar Sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </nav>
     }
 
     <div class="container">
@@ -52,4 +97,5 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
