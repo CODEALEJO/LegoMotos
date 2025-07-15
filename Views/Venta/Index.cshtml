@@ -1,7 +1,6 @@
 @model List<LavaderoMotos.Models.Venta>
 
 <div class="container mt-4">
-
     <h2 class="mb-4 text-center">Historial de Ventas</h2>
 
     @if (TempData["SuccessMessage"] != null)
@@ -20,25 +19,20 @@
         </div>
     }
 
-    <!-- Filtros de búsqueda - Versión mejorada -->
+    <!-- Filtros de búsqueda -->
     <div class="card mb-4 mx-auto" style="max-width: 1000px;">
         <div class="card-body">
             <form method="get" asp-action="Index" class="row g-3 justify-content-center align-items-center">
-                <!-- Filtro por fecha -->
                 <div class="col-md-3">
                     <label for="fecha" class="form-label">Filtrar por fecha:</label>
                     <input type="date" name="fecha" id="fecha" class="form-control"
                         value="@Context.Request.Query["fecha"]" />
                 </div>
-
-                <!-- Filtro por placa -->
                 <div class="col-md-3">
                     <label for="placa" class="form-label">Buscar por placa:</label>
                     <input type="text" name="placa" id="placa" class="form-control" maxlength="6"
                         placeholder="Ej: ABC123" value="@Context.Request.Query["placa"]" />
                 </div>
-
-                <!-- Botones de acción -->
                 <div class="col-md-4 d-flex align-items-end">
                     <div class="d-grid gap-2 d-md-flex">
                         <button type="submit" class="btn btn-primary me-2">
@@ -53,7 +47,7 @@
         </div>
     </div>
 
-    <!-- Listado de ventas estilo acordeón -->
+    <!-- Listado de ventas -->
     <div class="accordion mx-auto" id="ventasAccordion" style="max-width: 1000px;">
         @foreach (var venta in Model)
         {
@@ -64,7 +58,7 @@
                         <div class="d-flex justify-content-between w-100">
                             <span class="fw-bold">Placa: @venta.Placa</span>
                             <span class="text-muted me-3">@venta.Fecha.ToShortDateString()</span>
-                            <span class="badge bg-primary">Total: $@venta.TotalFormateado</span>
+                            <span class="badge bg-primary">Total: $@venta.Total.ToString("N0")</span>
                         </div>
                     </button>
                 </h2>
@@ -79,7 +73,7 @@
                                 <p><strong>Fecha:</strong> @venta.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
                             </div>
                             <div class="col-md-4">
-                                <p><strong>Descuento:</strong> $@venta.DescuentoFormateado (@venta.Descuento%)</p>
+                                <p><strong>Descuento:</strong> $@((venta.Subtotal * venta.Descuento / 100).ToString("N0")) (@venta.Descuento%)</p>
                             </div>
                         </div>
 
@@ -101,26 +95,71 @@
                                             <td>@producto.Producto</td>
                                             <td>@producto.Cantidad</td>
                                             <td>$@producto.Precio.ToString("N0")</td>
-                                            <td>$@producto.Total.ToString("N0")</td>
+                                            <td>$@((producto.Cantidad * producto.Precio).ToString("N0"))</td>
                                         </tr>
                                     }
                                 </tbody>
                                 <tfoot>
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold">Subtotal:</td>
-                                        <td class="fw-bold">$@venta.SubtotalFormateado</td>
+                                        <td class="fw-bold">$@venta.Subtotal.ToString("N0")</td>
                                     </tr>
                                     @if (venta.Descuento > 0)
                                     {
                                         <tr>
                                             <td colspan="3" class="text-end fw-bold">Descuento (@venta.Descuento%):</td>
-                                            <td class="fw-bold text-danger">-$@venta.DescuentoFormateado</td>
+                                            <td class="fw-bold text-danger">-$@((venta.Subtotal * venta.Descuento / 100).ToString("N0"))</td>
                                         </tr>
                                     }
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold">Total:</td>
-                                        <td class="fw-bold">$@venta.TotalFormateado</td>
+                                        <td class="fw-bold">$@venta.Total.ToString("N0")</td>
                                     </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Sección de métodos de pago -->
+                        <h5 class="mb-3 mt-4">Métodos de Pago</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Método</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var metodo in venta.MetodosPago)
+                                    {
+                                        <tr>
+                                            <td>@metodo.Tipo.ToString()</td>
+                                            <td>$@metodo.Valor.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="text-end fw-bold">Total Pagado:</td>
+                                        <td class="fw-bold">$@venta.MetodosPago.Sum(m => m.Valor).ToString("N0")</td>
+                                    </tr>
+                                    @{
+                                        var saldoPendiente = venta.Total - venta.MetodosPago.Sum(m => m.Valor);
+                                    }
+                                    @if (saldoPendiente > 0)
+                                    {
+                                        <tr>
+                                            <td class="text-end fw-bold text-danger">Saldo Pendiente:</td>
+                                            <td class="fw-bold text-danger">$@saldoPendiente.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                    else if (saldoPendiente < 0)
+                                    {
+                                        <tr>
+                                            <td class="text-end fw-bold text-warning">Cambio:</td>
+                                            <td class="fw-bold text-warning">$@Math.Abs(saldoPendiente).ToString("N0")</td>
+                                        </tr>
+                                    }
                                 </tfoot>
                             </table>
                         </div>

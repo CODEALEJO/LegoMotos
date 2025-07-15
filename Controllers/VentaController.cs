@@ -19,10 +19,12 @@ namespace LavaderoMotos.Controllers
             _context = context;
             _logger = logger;
         }
-
+    
         public IActionResult Index(DateTime? fecha, string placa)
         {
-            IQueryable<Venta> query = _context.Ventas.Include(v => v.Productos);
+            IQueryable<Venta> query = _context.Ventas
+                .Include(v => v.Productos)
+                .Include(v => v.MetodosPago); // Añade esta línea para incluir los métodos de pago
 
             if (fecha.HasValue)
             {
@@ -37,7 +39,6 @@ namespace LavaderoMotos.Controllers
             return View(ventas);
         }
 
-
         public IActionResult Create()
         {
             return View("CreateEdit", new Venta
@@ -49,7 +50,11 @@ namespace LavaderoMotos.Controllers
 
         public IActionResult Edit(int id)
         {
-            var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
+            var venta = _context.Ventas
+                .Include(v => v.Productos)
+                .Include(v => v.MetodosPago) // Añade esta línea
+                .FirstOrDefault(v => v.Id == id);
+
             if (venta == null)
             {
                 _logger.LogWarning($"Venta con ID {id} no encontrada");
@@ -67,11 +72,6 @@ namespace LavaderoMotos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Venta venta)
-        {
-            return await GuardarVenta(venta, isEdit: true);
-        }
-
         private async Task<IActionResult> GuardarVenta(Venta venta, bool isEdit)
         {
             try
@@ -79,6 +79,24 @@ namespace LavaderoMotos.Controllers
                 if (venta.Productos == null || venta.Productos.Count == 0)
                 {
                     TempData["ErrorMessage"] = "Debe agregar al menos un producto";
+                    return View("CreateEdit", venta);
+                }
+
+                // Validar métodos de pago
+                if (venta.MetodosPago == null || venta.MetodosPago.Count == 0)
+                {
+                    TempData["ErrorMessage"] = "Debe agregar al menos un método de pago";
+                    return View("CreateEdit", venta);
+                }
+
+                // Calcular total para validar métodos de pago
+                var subtotal = venta.Productos.Sum(p => p.Cantidad * p.Precio);
+                var total = subtotal * (1 - venta.Descuento / 100m);
+                var totalPagado = venta.MetodosPago.Sum(m => m.Valor);
+
+                if (Math.Abs(totalPagado - total) > 0.01m)
+                {
+                    TempData["ErrorMessage"] = $"La suma de los métodos de pago ({totalPagado.ToString("N0")}) no coincide con el total de la venta ({total.ToString("N0")})";
                     return View("CreateEdit", venta);
                 }
 
@@ -120,7 +138,6 @@ namespace LavaderoMotos.Controllers
 
                                 if (isEdit)
                                 {
-                                    // Para edición, necesitamos verificar la diferencia con la cantidad original
                                     var productoOriginal = await _context.ProductosVenta
                                         .FirstOrDefaultAsync(p => p.Id == producto.Id);
 
@@ -156,6 +173,7 @@ namespace LavaderoMotos.Controllers
                             {
                                 var existente = await _context.Ventas
                                     .Include(v => v.Productos)
+                                    .Include(v => v.MetodosPago)
                                     .FirstOrDefaultAsync(v => v.Id == venta.Id);
 
                                 if (existente == null)
@@ -188,6 +206,26 @@ namespace LavaderoMotos.Controllers
                                     }
                                 }
 
+                                // Manejar métodos de pago
+                                foreach (var metodoPago in venta.MetodosPago)
+                                {
+                                    if (metodoPago.Id > 0) // Método existente
+                                    {
+                                        var metodoExistente = existente.MetodosPago
+                                            .FirstOrDefault(m => m.Id == metodoPago.Id);
+
+                                        if (metodoExistente != null)
+                                        {
+                                            metodoExistente.Tipo = metodoPago.Tipo;
+                                            metodoExistente.Valor = metodoPago.Valor;
+                                        }
+                                    }
+                                    else // Nuevo método
+                                    {
+                                        existente.MetodosPago.Add(metodoPago);
+                                    }
+                                }
+
                                 // Eliminar productos que no están en la lista actualizada
                                 var idsProductosActualizados = venta.Productos.Select(p => p.Id).ToList();
                                 foreach (var productoExistente in existente.Productos.ToList())
@@ -195,6 +233,16 @@ namespace LavaderoMotos.Controllers
                                     if (!idsProductosActualizados.Contains(productoExistente.Id))
                                     {
                                         _context.ProductosVenta.Remove(productoExistente);
+                                    }
+                                }
+
+                                // Eliminar métodos de pago que no están en la lista actualizada
+                                var idsMetodosActualizados = venta.MetodosPago.Select(m => m.Id).ToList();
+                                foreach (var metodoExistente in existente.MetodosPago.ToList())
+                                {
+                                    if (!idsMetodosActualizados.Contains(metodoExistente.Id))
+                                    {
+                                        _context.MetodoPagos.Remove(metodoExistente);
                                     }
                                 }
 
