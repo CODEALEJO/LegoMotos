@@ -69,6 +69,11 @@
                         asp-controller="Inventario" asp-action="Index">
                         Inventario
                     </a>
+                
+                     <a class="nav-button btn btn-outline-warning @(ViewContext.RouteData.Values["controller"].ToString() == "Caja" ? "active-nav-button" : "")"
+                        asp-controller="Caja" asp-action="Index">
+                        Caja
+                    </a>
                     <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                         <button type="submit" class="nav-button btn btn-outline-danger"
                             style="background:danger; border:danger;">

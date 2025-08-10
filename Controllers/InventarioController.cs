@@ -16,19 +16,17 @@ namespace LavaderoMotos.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string nombre = null)
-        {
-            var productos = from p in _context.Productos
-                            select p;
+public async Task<IActionResult> Index(string nombre = null)
+{
+    IQueryable<Producto> productos = _context.Productos.OrderBy(p => p.Nombre);
 
-            if (!string.IsNullOrEmpty(nombre))
-            {
-                productos = productos.Where(p => p.Nombre.Contains(nombre));
-            }
+    if (!string.IsNullOrEmpty(nombre))
+    {
+        productos = productos.Where(p => p.Nombre.Contains(nombre));
+    }
 
-            return View(await productos.ToListAsync());
-        }
-
+    return View(await productos.ToListAsync());
+}
 
         [HttpGet]
         public IActionResult BuscarProducto(string nombre)

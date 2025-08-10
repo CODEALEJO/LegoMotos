@@ -5,6 +5,7 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <style>
@@ -12,69 +13,131 @@
         body {
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            width: 76mm; /* Ancho máximo de impresión */
+            width: 76mm;
+            /* Ancho máximo de impresión */
             margin: 0;
             padding: 2mm;
         }
+
         .header {
             text-align: center;
             margin-bottom: 3mm;
         }
+
         .header h2 {
             font-size: 14px;
             margin: 2mm 0;
         }
+
         .header p {
             margin: 1mm 0;
             font-size: 10px;
         }
+
         .details {
             margin: 3mm 0;
             border-bottom: 1px dashed #000;
             padding-bottom: 3mm;
         }
+
         .details p {
             margin: 1mm 0;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 3mm 0;
         }
+
         th {
             text-align: left;
             border-bottom: 1px solid #000;
             padding: 1mm 0;
         }
+
         td {
             padding: 1mm 0;
         }
+
         .text-right {
             text-align: right;
         }
+
         .total {
             border-top: 1px solid #000;
             font-weight: bold;
             margin-top: 2mm;
             padding-top: 2mm;
         }
+
         .footer {
             text-align: center;
             margin-top: 5mm;
             font-size: 10px;
         }
+
+        .metodos-pago {
+            margin-top: 3mm;
+            border-top: 1px dashed #000;
+            padding-top: 2mm;
+        }
+
+        .no-print {
+            display: none;
+        }
+
         @@media print {
             @@page {
                 size: 80mm auto;
                 margin: 0;
             }
+
             body {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        @@media screen {
+            .print-only {
+                display: none;
+            }
+
+            .no-print {
+                display: block;
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            /* Nuevos estilos para el botón de volver */
+            .btn-volver {
+                background-color: #dc3545;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                text-decoration: none;
+                font-size: 14px;
+                display: inline-block;
+                margin: 10px auto;
+                transition: background-color 0.3s;
+            }
+
+            .btn-volver:hover {
+                background-color: #bb2d3b;
+                color: white;
+                text-decoration: none;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h2>LEGO MOTORS</h2>
@@ -89,6 +152,7 @@
         <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
         <p><strong>Placa:</strong> @Model.Placa</p>
         <p><strong>Kilometraje:</strong> @Model.Kilometraje</p>
+        <p><strong>Factura #:</strong> @Model.Id</p>
     </div>
 
     <table>
@@ -97,6 +161,7 @@
                 <th>Producto</th>
                 <th class="text-right">Cant</th>
                 <th class="text-right">P.Unit</th>
+                <th class="text-right">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -105,31 +170,83 @@
                 <tr>
                     <td>@producto.Producto</td>
                     <td class="text-right">@producto.Cantidad</td>
-                    <td class="text-right">@producto.Precio</td>
+                    <td class="text-right">$@producto.Precio.ToString("N0")</td>
+                    <td class="text-right">$@((producto.Cantidad * producto.Precio).ToString("N0"))</td>
                 </tr>
             }
         </tbody>
     </table>
 
     <div class="total text-right">
-        TOTAL: $@Model.TotalFormateado
+        @if (Model.Descuento > 0)
+        {
+            <p>Subtotal: $@Model.Subtotal.ToString("N0")</p>
+            <p>Descuento (@Model.Descuento%): -$@((Model.Subtotal * Model.Descuento / 100).ToString("N0"))</p>
+        }
+        <p>TOTAL: $@Model.Total.ToString("N0")</p>
+    </div>
+
+    <div class="metodos-pago">
+        <h5 style="margin-bottom: 2mm;">MÉTODOS DE PAGO</h5>
+        <table>
+            <tbody>
+                @foreach (var metodo in Model.MetodosPago)
+                {
+                    <tr>
+                        <td>@metodo.Tipo.ToString()</td>
+                        <td class="text-right">$@metodo.Valor.ToString("N0")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="text-right"><strong>Total Pagado:</strong></td>
+                    <td class="text-right"><strong>$@Model.MetodosPago.Sum(m => m.Valor).ToString("N0")</strong></td>
+                </tr>
+                @{
+                    var saldoPendiente = Model.Total - Model.MetodosPago.Sum(m => m.Valor);
+                }
+                @if (saldoPendiente > 0)
+                {
+                    <tr>
+                        <td class="text-right"><strong>Saldo Pendiente:</strong></td>
+                        <td class="text-right"><strong>$@saldoPendiente.ToString("N0")</strong></td>
+                    </tr>
+                }
+                else if (saldoPendiente < 0)
+                {
+                    <tr>
+                        <td class="text-right"><strong>Cambio:</strong></td>
+                        <td class="text-right"><strong>$@Math.Abs(saldoPendiente).ToString("N0")</strong></td>
+                    </tr>
+                }
+            </tfoot>
+        </table>
     </div>
 
     <div class="footer">
         <p>¡Gracias por su compra!</p>
-        <p>La mano de obra cuenta con una garantía de 3 meses a partir de la fecha de servicio. Los repuestos están cubiertos según las condiciones de garantía establecidas por cada fabricante.</p>
+        <p>La mano de obra cuenta con una garantía de 3 meses a partir de la fecha de servicio. Los repuestos están
+            cubiertos según las condiciones de garantía establecidas por cada fabricante.</p>
         <p>--------------------------------</p>
     </div>
 
+    <div class="no-print">
+        <a asp-action="Index" class="btn-volver">
+            <i class="bi bi-arrow-left-circle"></i> Volver al Listado de Ventas
+        </a>
+    </div>
+
     <script>
-        window.onload = function() {
-            setTimeout(function() {
+        window.onload = function () {
+            setTimeout(function () {
                 window.print();
-                setTimeout(function() {
+                setTimeout(function () {
                     window.close();
                 }, 100);
             }, 200);
         };
     </script>
 </body>
+
 </html>

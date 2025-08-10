@@ -1,0 +1,72 @@
+@model LavaderoMotos.Models.Caja
+
+@{
+    ViewData["Title"] = "Apertura de Caja";
+}
+
+<div class="container">
+    <h2>@ViewData["Title"]</h2>
+    <hr />
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Apertura" method="post" id="aperturaForm">
+                @Html.AntiForgeryToken()
+                
+                <div class="form-group mb-3">
+                    <label asp-for="SaldoInicialEfectivo" class="form-label">Saldo Inicial en Efectivo</label>
+                    <input asp-for="SaldoInicialEfectivo" class="form-control" 
+                           type="text" inputmode="decimal" 
+                           pattern="^\d+(\.\d{1,2})?$" 
+                           placeholder="Ejemplo: 100.50" required />
+                    <span asp-validation-for="SaldoInicialEfectivo" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-down"></i> Confirmar Apertura
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Validación del formulario en el cliente
+            $('#aperturaForm').submit(function(e) {
+                const input = $('#SaldoInicialEfectivo');
+                const value = parseFloat(input.val());
+                
+                if (isNaN(value) {
+                    alert('Por favor ingrese un valor numérico válido');
+                    input.focus();
+                    return false;
+                }
+                
+                if (value < 0) {
+                    alert('El saldo inicial no puede ser negativo');
+                    input.focus();
+                    return false;
+                }
+                
+                return true;
+            });
+        });
+    </script>
+}

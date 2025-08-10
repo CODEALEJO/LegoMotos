@@ -19,12 +19,13 @@ namespace LavaderoMotos.Controllers
             _context = context;
             _logger = logger;
         }
-    
+
         public IActionResult Index(DateTime? fecha, string placa)
         {
             IQueryable<Venta> query = _context.Ventas
                 .Include(v => v.Productos)
-                .Include(v => v.MetodosPago); // Añade esta línea para incluir los métodos de pago
+                .Include(v => v.MetodosPago)
+                .Include(v => v.Caja);
 
             if (fecha.HasValue)
             {
@@ -35,16 +36,28 @@ namespace LavaderoMotos.Controllers
                 query = query.Where(v => v.Placa.Contains(placa));
             }
 
+            // Ordenar de más reciente a más antigua
+            query = query.OrderByDescending(v => v.Fecha);
+
             var ventas = query.ToList();
             return View(ventas);
         }
 
         public IActionResult Create()
         {
+            // Verificar si hay caja abierta pero no bloquear la creación
+            var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
+
+            if (cajaAbierta == null)
+            {
+                TempData["WarningMessage"] = "No hay caja abierta. La venta no se asociará a ninguna caja.";
+            }
+
             return View("CreateEdit", new Venta
             {
                 Fecha = DateTime.Now,
-                Productos = new List<ProductoVenta>()
+                Productos = new List<ProductoVenta>(),
+                CajaId = cajaAbierta.Id // Asignar null si no hay caja abierta
             });
         }
 
@@ -52,7 +65,8 @@ namespace LavaderoMotos.Controllers
         {
             var venta = _context.Ventas
                 .Include(v => v.Productos)
-                .Include(v => v.MetodosPago) // Añade esta línea
+                .Include(v => v.MetodosPago)
+                .Include(v => v.Caja)
                 .FirstOrDefault(v => v.Id == id);
 
             if (venta == null)
@@ -60,6 +74,14 @@ namespace LavaderoMotos.Controllers
                 _logger.LogWarning($"Venta con ID {id} no encontrada");
                 return NotFound();
             }
+
+            // Verificar si la caja está cerrada
+            if (venta.Caja?.FechaCierre != null)
+            {
+                TempData["ErrorMessage"] = "No se puede editar una venta de una caja cerrada.";
+                return RedirectToAction("Index", "Venta");
+            }
+
             return View("CreateEdit", venta);
         }
 
@@ -72,24 +94,35 @@ namespace LavaderoMotos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Venta venta)
+        {
+            if (id != venta.Id)
+            {
+                return NotFound();
+            }
+            return await GuardarVenta(venta, isEdit: true);
+        }
+
+
         private async Task<IActionResult> GuardarVenta(Venta venta, bool isEdit)
         {
             try
             {
+                // Verificar si hay caja abierta (pero no bloquear si no hay)
+                var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
+
                 if (venta.Productos == null || venta.Productos.Count == 0)
                 {
                     TempData["ErrorMessage"] = "Debe agregar al menos un producto";
                     return View("CreateEdit", venta);
                 }
 
-                // Validar métodos de pago
                 if (venta.MetodosPago == null || venta.MetodosPago.Count == 0)
                 {
                     TempData["ErrorMessage"] = "Debe agregar al menos un método de pago";
                     return View("CreateEdit", venta);
                 }
 
-                // Calcular total para validar métodos de pago
                 var subtotal = venta.Productos.Sum(p => p.Cantidad * p.Precio);
                 var total = subtotal * (1 - venta.Descuento / 100m);
                 var totalPagado = venta.MetodosPago.Sum(m => m.Valor);
@@ -100,7 +133,6 @@ namespace LavaderoMotos.Controllers
                     return View("CreateEdit", venta);
                 }
 
-                // Normalización de valores
                 foreach (var producto in venta.Productos)
                 {
                     producto.Precio = NormalizarPrecio(producto.Precio);
@@ -116,7 +148,6 @@ namespace LavaderoMotos.Controllers
                         using var transaction = await _context.Database.BeginTransactionAsync();
                         try
                         {
-                            // Consolidar productos duplicados
                             venta.Productos = venta.Productos
                                 .GroupBy(p => p.Producto)
                                 .Select(g => new ProductoVenta
@@ -127,7 +158,6 @@ namespace LavaderoMotos.Controllers
                                 })
                                 .ToList();
 
-                            // Validar y actualizar inventario
                             foreach (var producto in venta.Productos)
                             {
                                 var productoInventario = await _context.Productos
@@ -168,7 +198,6 @@ namespace LavaderoMotos.Controllers
                                 _context.Productos.Update(productoInventario);
                             }
 
-                            // Guardar la venta
                             if (isEdit)
                             {
                                 var existente = await _context.Ventas
@@ -179,16 +208,14 @@ namespace LavaderoMotos.Controllers
                                 if (existente == null)
                                     throw new Exception("Venta no encontrada para editar");
 
-                                // Actualizar propiedades básicas
                                 existente.Placa = venta.Placa;
                                 existente.Kilometraje = venta.Kilometraje;
                                 existente.Descuento = venta.Descuento;
                                 existente.Fecha = venta.Fecha;
 
-                                // Manejar productos
                                 foreach (var producto in venta.Productos)
                                 {
-                                    if (producto.Id > 0) // Producto existente
+                                    if (producto.Id > 0)
                                     {
                                         var productoExistente = existente.Productos
                                             .FirstOrDefault(p => p.Id == producto.Id);
@@ -200,16 +227,15 @@ namespace LavaderoMotos.Controllers
                                             productoExistente.Precio = producto.Precio;
                                         }
                                     }
-                                    else // Nuevo producto
+                                    else
                                     {
                                         existente.Productos.Add(producto);
                                     }
                                 }
 
-                                // Manejar métodos de pago
                                 foreach (var metodoPago in venta.MetodosPago)
                                 {
-                                    if (metodoPago.Id > 0) // Método existente
+                                    if (metodoPago.Id > 0)
                                     {
                                         var metodoExistente = existente.MetodosPago
                                             .FirstOrDefault(m => m.Id == metodoPago.Id);
@@ -220,13 +246,12 @@ namespace LavaderoMotos.Controllers
                                             metodoExistente.Valor = metodoPago.Valor;
                                         }
                                     }
-                                    else // Nuevo método
+                                    else
                                     {
                                         existente.MetodosPago.Add(metodoPago);
                                     }
                                 }
 
-                                // Eliminar productos que no están en la lista actualizada
                                 var idsProductosActualizados = venta.Productos.Select(p => p.Id).ToList();
                                 foreach (var productoExistente in existente.Productos.ToList())
                                 {
@@ -236,7 +261,6 @@ namespace LavaderoMotos.Controllers
                                     }
                                 }
 
-                                // Eliminar métodos de pago que no están en la lista actualizada
                                 var idsMetodosActualizados = venta.MetodosPago.Select(m => m.Id).ToList();
                                 foreach (var metodoExistente in existente.MetodosPago.ToList())
                                 {
@@ -251,7 +275,38 @@ namespace LavaderoMotos.Controllers
                             else
                             {
                                 venta.Fecha = venta.Fecha == default ? DateTime.Now : venta.Fecha;
+
+                                // Asignar caja solo si está abierta
+                                if (cajaAbierta != null)
+                                {
+                                    venta.CajaId = cajaAbierta.Id;
+                                }
+
                                 await _context.Ventas.AddAsync(venta);
+                            }
+
+                            await _context.SaveChangesAsync();
+
+                            // Registrar movimientos de caja solo si hay caja abierta y es nueva venta
+                            if (!isEdit && cajaAbierta != null)
+                            {
+                                foreach (var metodoPago in venta.MetodosPago)
+                                {
+                                    var movimiento = new MovimientoCaja
+                                    {
+                                        CajaId = cajaAbierta.Id,
+                                        Fecha = DateTime.Now,
+                                        Tipo = TipoMovimiento.Ingreso,
+                                        FormaPago = metodoPago.Tipo == TipoMetodoPago.Efectivo ?
+                                            FormaPagoMovimiento.Efectivo : FormaPagoMovimiento.Transferencia,
+                                        Monto = metodoPago.Valor,
+                                        Descripcion = $"Venta #{venta.Id} - {metodoPago.Tipo}",
+                                        VentaId = venta.Id,
+                                        Usuario = User.Identity?.Name ?? "Sistema"
+                                    };
+
+                                    await _context.MovimientoCajas.AddAsync(movimiento);
+                                }
                             }
 
                             await _context.SaveChangesAsync();
@@ -284,34 +339,75 @@ namespace LavaderoMotos.Controllers
 
         public IActionResult Delete(int id)
         {
-            var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
+            var venta = _context.Ventas
+                .Include(v => v.Productos)
+                .Include(v => v.Caja)
+                .FirstOrDefault(v => v.Id == id);
+
             if (venta == null)
             {
                 _logger.LogWarning($"Venta con ID {id} no encontrada para eliminar");
                 return NotFound();
             }
+
+            // Verificar si la caja está cerrada
+            if (venta.Caja?.FechaCierre != null)
+            {
+                TempData["ErrorMessage"] = "No se puede eliminar una venta de una caja cerrada.";
+                return RedirectToAction("Index");
+            }
+
             return View(venta);
         }
 
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var venta = await _context.Ventas
+                .Include(v => v.Productos)
+                .Include(v => v.MetodosPago)
+                .Include(v => v.Caja)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (venta == null)
+            {
+                _logger.LogWarning($"Venta con ID {id} no encontrada");
+                return NotFound();
+            }
+
+            // Verificar si la caja está cerrada
+            if (venta.Caja?.FechaCierre != null)
+            {
+                TempData["ErrorMessage"] = "No se puede eliminar una venta de una caja cerrada.";
+                return RedirectToAction("Index");
+            }
+
             try
             {
-                var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
-                if (venta == null)
+                // Restaurar stock de productos
+                foreach (var producto in venta.Productos)
                 {
-                    _logger.LogWarning($"Venta con ID {id} no encontrada");
-                    return NotFound();
+                    var productoInventario = await _context.Productos
+                        .FirstOrDefaultAsync(p => p.Nombre.ToLower() == producto.Producto.ToLower());
+
+                    if (productoInventario != null)
+                    {
+                        productoInventario.Cantidad += producto.Cantidad;
+                        _context.Productos.Update(productoInventario);
+                    }
                 }
 
-                // Primero eliminar los productos relacionados
-                _context.ProductosVenta.RemoveRange(venta.Productos);
-                // Luego eliminar la venta
+                // Eliminar movimientos de caja asociados
+                var movimientos = await _context.MovimientoCajas
+                    .Where(m => m.VentaId == id)
+                    .ToListAsync();
+
+                _context.MovimientoCajas.RemoveRange(movimientos);
+
+                // Eliminar la venta
                 _context.Ventas.Remove(venta);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "La venta se ha eliminado correctamente.";
                 return RedirectToAction(nameof(Index));
@@ -326,7 +422,12 @@ namespace LavaderoMotos.Controllers
 
         public IActionResult Print(int id)
         {
-            var venta = _context.Ventas.Include(v => v.Productos).FirstOrDefault(v => v.Id == id);
+            var venta = _context.Ventas
+                .Include(v => v.Productos)
+                .Include(v => v.MetodosPago)
+                .Include(v => v.Caja)
+                .FirstOrDefault(v => v.Id == id);
+
             if (venta == null)
             {
                 _logger.LogWarning($"Venta con ID {id} no encontrada para imprimir");
@@ -346,17 +447,12 @@ namespace LavaderoMotos.Controllers
         {
             if (precio == null) return 0;
 
-            // Si ya es decimal, devolverlo directamente
             if (precio is decimal decimalValue)
             {
                 return decimalValue;
             }
 
-            // Si es string, parsearlo conservando el formato original
-            var precioStr = precio.ToString();
-
-            // Reemplazar comas por puntos si es necesario (para culturas que usan coma como separador decimal)
-            precioStr = precioStr.Replace(",", ".");
+            var precioStr = precio.ToString().Replace(",", ".");
 
             if (decimal.TryParse(precioStr, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
             {
@@ -365,7 +461,6 @@ namespace LavaderoMotos.Controllers
 
             return 0;
         }
-
 
         [HttpGet]
         public async Task<IActionResult> ObtenerProductosDisponibles()

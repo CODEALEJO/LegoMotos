@@ -28,6 +28,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/alejo/OneDrive/Escritorio/Programacion/LavaderoMotos/Views/Caja/Apertura.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FqYVxBcGVydHVyYS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/alejo/OneDrive/Escritorio/Programacion/LavaderoMotos/Views/Caja/Cierre.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FqYVxDaWVycmUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/alejo/OneDrive/Escritorio/Programacion/LavaderoMotos/Views/Caja/Detalle.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FqYVxEZXRhbGxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/alejo/OneDrive/Escritorio/Programacion/LavaderoMotos/Views/Caja/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FqYVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/alejo/OneDrive/Escritorio/Programacion/LavaderoMotos/Views/Inventario/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52ZW50YXJpb1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

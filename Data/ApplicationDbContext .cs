@@ -17,6 +17,8 @@ namespace LavaderoMotos.Data
         public DbSet<Factura> Facturas { get; set; }
         public DbSet<Producto> Productos { get; set; }
         public DbSet<MetodoPago> MetodoPagos { get; set; }
+        public DbSet <Caja> Cajas { get; set; }
+        public DbSet <MovimientoCaja> MovimientoCajas  { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

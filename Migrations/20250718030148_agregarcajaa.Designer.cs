@@ -3,6 +3,7 @@ using System;
 using LavaderoMotos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LavaderoMotos.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250718030148_agregarcajaa")]
+    partial class agregarcajaa
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,7 +52,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cajas", (string)null);
+                    b.ToTable("Cajas");
                 });
 
             modelBuilder.Entity("LavaderoMotos.Models.Factura", b =>
@@ -67,7 +70,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Facturas", (string)null);
+                    b.ToTable("Facturas");
                 });
 
             modelBuilder.Entity("LavaderoMotos.Models.MetodoPago", b =>
@@ -89,7 +92,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("MetodoPagos", (string)null);
+                    b.ToTable("MetodoPagos");
                 });
 
             modelBuilder.Entity("LavaderoMotos.Models.MovimientoCaja", b =>
@@ -131,7 +134,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("MovimientoCajas", (string)null);
+                    b.ToTable("MovimientoCajas");
                 });
 
             modelBuilder.Entity("LavaderoMotos.Models.Producto", b =>
@@ -156,7 +159,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Productos", (string)null);
+                    b.ToTable("Productos");
                 });
 
             modelBuilder.Entity("LavaderoMotos.Models.ProductoVenta", b =>
@@ -182,7 +185,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("ProductosVenta", (string)null);
+                    b.ToTable("ProductosVenta");
                 });
 
             modelBuilder.Entity("LavaderoMotos.Models.Venta", b =>
@@ -217,7 +220,7 @@ namespace LavaderoMotos.Migrations
 
                     b.HasIndex("FacturaId");
 
-                    b.ToTable("Ventas", (string)null);
+                    b.ToTable("Ventas");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

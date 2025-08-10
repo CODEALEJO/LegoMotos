@@ -34,6 +34,10 @@ namespace LavaderoMotos.Models
         [Column(TypeName = "decimal(5,2)")]
         public decimal Descuento { get; set; } = 0;
 
+        // Modificar la relación con Caja para que sea opcional
+        public int? CajaId { get; set; }
+        public Caja? Caja { get; set; }
+
         [NotMapped]
         public decimal Subtotal => Productos?.Sum(p => p.Total) ?? 0;
 
