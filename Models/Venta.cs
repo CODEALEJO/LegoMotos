@@ -34,6 +34,11 @@ namespace LavaderoMotos.Models
         [Column(TypeName = "decimal(5,2)")]
         public decimal Descuento { get; set; } = 0;
 
+        [Range(0, double.MaxValue, ErrorMessage = "La mano de obra debe ser un valor positivo")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ManoDeObra { get; set; } = 0;
+
+
         // Modificar la relación con Caja para que sea opcional
         public int? CajaId { get; set; }
         public Caja? Caja { get; set; }
@@ -42,7 +47,10 @@ namespace LavaderoMotos.Models
         public decimal Subtotal => Productos?.Sum(p => p.Total) ?? 0;
 
         [NotMapped]
-        public decimal Total => Subtotal * (1 - Descuento / 100m);
+        public string ManoDeObraFormateado => ManoDeObra.ToString("N0", CultureInfo.InvariantCulture);
+        
+        [NotMapped]
+        public decimal Total => (Subtotal * (1 - Descuento / 100m)) + ManoDeObra;
 
         [NotMapped]
         public decimal TotalPagado => MetodosPago?.Sum(m => m.Valor) ?? 0;

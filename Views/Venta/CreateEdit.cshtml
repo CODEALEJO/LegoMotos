@@ -4,20 +4,20 @@
 }
 
 <div class="container mt-4">
-    @if (TempData["SuccessMessage"] != null)
-    {
+@if (TempData["SuccessMessage"] != null)
+{
         <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
             @TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
+}
+@if (TempData["ErrorMessage"] != null)
+{
         <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 800px;" role="alert">
             @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    }
+}
 
     <h2>@ViewData["Title"]</h2>
 
@@ -43,8 +43,8 @@
             <div class="col-md-4">
                 <div class="mb-3">
                     <label asp-for="Fecha" class="form-label">Fecha de Venta</label>
-                    <input asp-for="Fecha" type="datetime-local" class="form-control" 
-                           value="@Model.Fecha.ToString("yyyy-MM-ddTHH:mm")" />
+                    <input asp-for="Fecha" type="datetime-local" class="form-control"
+                        value="@Model.Fecha.ToString("yyyy-MM-ddTHH:mm")" />
                     <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
             </div>
@@ -66,20 +66,20 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Cantidad</label>
-                            <input asp-for="Productos[i].Cantidad" type="number" min="1" 
-                                   class="form-control cantidad" required />
+                            <input asp-for="Productos[i].Cantidad" type="number" min="1" class="form-control cantidad"
+                                required />
                             <span asp-validation-for="Productos[i].Cantidad" class="text-danger"></span>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Precio Unitario</label>
-                            <input asp-for="Productos[i].Precio" type="text" inputmode="decimal" 
-                                   class="form-control precio" required readonly />
+                            <input asp-for="Productos[i].Precio" type="text" inputmode="decimal" class="form-control precio"
+                                required readonly />
                             <span asp-validation-for="Productos[i].Precio" class="text-danger"></span>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Subtotal</label>
-                            <input class="form-control subtotal" readonly 
-                                   value="@((Model.Productos[i].Cantidad * Model.Productos[i].Precio).ToString("N0"))" />
+                            <input class="form-control subtotal" readonly
+                                value="@((Model.Productos[i].Cantidad * Model.Productos[i].Precio).ToString("N0"))" />
                         </div>
                         <div class="col-md-1 d-flex align-items-end">
                             <button type="button" class="btn btn-danger btn-sm btn-remove-producto">
@@ -116,8 +116,8 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Valor</label>
-                            <input asp-for="MetodosPago[i].Valor" type="number" min="0" step="0.01" 
-                                   class="form-control valor-metodo" required />
+                            <input asp-for="MetodosPago[i].Valor" type="number" min="0" step="0.01"
+                                class="form-control valor-metodo" required />
                             <span asp-validation-for="MetodosPago[i].Valor" class="text-danger"></span>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
@@ -145,444 +145,473 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label asp-for="Descuento" class="form-label">Descuento (%)</label>
-                            <input asp-for="Descuento" type="number" min="0" max="100" step="1" 
-                                   class="form-control" id="descuentoInput" />
+                            <input asp-for="Descuento" type="number" min="0" max="100" step="1" class="form-control"
+                                id="descuentoInput" />
                             <span asp-validation-for="Descuento" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="col-md-8">
-                        <div class="text-end">
-                            @{
-                                var subtotal = Model.Productos.Sum(p => p.Cantidad * p.Precio);
-                                var descuento = subtotal * (Model.Descuento / 100);
-                                var total = subtotal - descuento;
-                                var totalPagado = Model.MetodosPago.Sum(m => m.Valor);
-                                var saldoPendiente = total - totalPagado;
-                            }
-                            <h5>Subtotal: <span id="subtotalVenta">@subtotal.ToString("N0")</span></h5>
-                            <h5>Descuento: <span id="descuentoAplicado">@descuento.ToString("N0")</span> (<span id="porcentajeDescuento">@Model.Descuento</span>%)</h5>
-                            <h4>Total Venta: <span id="totalVenta">@total.ToString("N0")</span></h4>
-                            <h5>Total Pagado: <span id="totalPagado">@totalPagado.ToString("N0")</span></h5>
-                            <h5>Saldo Pendiente: <span id="saldoPendiente">@saldoPendiente.ToString("N0")</span></h5>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="ManoDeObra" class="form-label">Mano de Obra</label>
+                            <input asp-for="ManoDeObra" type="number" min="0" step="1000" class="form-control"
+                                id="manoDeObraInput" />
+                            <span asp-validation-for="ManoDeObra" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
+                <div class="col-md-8">
+                    <div class="text-end">
+                        @{
+                            var subtotal = Model.Productos.Sum(p => p.Cantidad * p.Precio);
+                            var descuento = subtotal * (Model.Descuento / 100);
+                            var total = (subtotal - descuento) + Model.ManoDeObra;
+                            var totalPagado = Model.MetodosPago.Sum(m => m.Valor);
+                            var saldoPendiente = total - totalPagado;
+                        }
+                        <h5>Subtotal: <span id="subtotalVenta">@subtotal.ToString("N0")</span></h5>
+                        <h5>Descuento: <span id="descuentoAplicado">@descuento.ToString("N0")</span> (<span
+                                id="porcentajeDescuento">@Model.Descuento</span>%)</h5>
+                        <h5>Mano de Obra: <span id="manoDeObraAplicada">@Model.ManoDeObra.ToString("N0")</span></h5>
+                        <h4>Total Venta: <span id="totalVenta">@total.ToString("N0")</span></h4>
+                        <h5>Total Pagado: <span id="totalPagado">@totalPagado.ToString("N0")</span></h5>
+                        <h5>Saldo Pendiente: <span id="saldoPendiente">@saldoPendiente.ToString("N0")</span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> @(Model.Id == 0 ? "Guardar Venta" : "Actualizar Venta")
+                </button>
+                <a asp-action="Index" class="btn btn-danger">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
             </div>
         </div>
-
-        <div class="mt-3">
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-save"></i> @(Model.Id == 0 ? "Guardar Venta" : "Actualizar Venta")
-            </button>
-            <a asp-action="Index" class="btn btn-danger">
-                <i class="bi bi-arrow-left"></i> Cancelar
-            </a>
-        </div>
     </form>
-</div>
+
+
+
+
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-    <script>
-        $(document).ready(function() {
-            
-            // Contador para nuevos productos
-            let productoIndex = @Model.Productos.Count;
-            // Contador para nuevos métodos de pago
-            let metodoPagoIndex = @Model.MetodosPago.Count;
-            
-            // Formateador de moneda
-            const formatoMoneda = new Intl.NumberFormat('es-CO', {
-                style: 'decimal',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            });
-            
-            // Convertir a mayúsculas la placa
-            $('#placaInput').on('input', function() {
-                this.value = this.value.toUpperCase();
-            });
-            
-            // Función para cargar productos disponibles
-            function cargarProductosDisponibles(selectElement) {
-                $.get('@Url.Action("ObtenerProductosDisponibles", "Venta")', function(data) {
-                    selectElement.empty();
-                    selectElement.append('<option value="">Seleccione un producto</option>');
-                    
-                    data.forEach(function(producto) {
-                        selectElement.append(new Option(
-                            `${producto.nombre} (Disponibles: ${producto.cantidad})`, 
-                            producto.nombre,
-                            false, 
-                            false
-                        ));
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+        <script>
+            $(document).ready(function () {
+
+                // Contador para nuevos productos
+                let productoIndex = @Model.Productos.Count;
+                // Contador para nuevos métodos de pago
+                let metodoPagoIndex = @Model.MetodosPago.Count;
+
+                // Formateador de moneda
+                const formatoMoneda = new Intl.NumberFormat('es-CO', {
+                    style: 'decimal',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
+
+                // Convertir a mayúsculas la placa
+                $('#placaInput').on('input', function () {
+                    this.value = this.value.toUpperCase();
+                });
+
+                // Función para cargar productos disponibles
+                function cargarProductosDisponibles(selectElement) {
+                    $.get('@Url.Action("ObtenerProductosDisponibles", "Venta")', function (data) {
+                        selectElement.empty();
+                        selectElement.append('<option value="">Seleccione un producto</option>');
+
+                        data.forEach(function (producto) {
+                            selectElement.append(new Option(
+                                `${producto.nombre} (Disponibles: ${producto.cantidad})`,
+                                producto.nombre,
+                                false,
+                                false
+                            ));
+                        });
+
+                        // Seleccionar el valor actual si es edición
+                        const currentValue = selectElement.attr('data-current-value');
+                        if (currentValue) {
+                            selectElement.val(currentValue).trigger('change');
+                        }
+                    });
+                }
+
+                // Función para obtener el precio de un producto
+                function obtenerPrecioProducto(nombreProducto, callback) {
+                    $.get('@Url.Action("ObtenerPrecioProducto", "Venta")', { nombre: nombreProducto }, function (data) {
+                        callback(data.precioVenta);
+                    });
+                }
+
+                // Agregar nuevo producto
+                $('#btnAddProducto').click(function () {
+                    const newProductoHtml = `
+                                            <div class="producto-item mb-3 border p-3 rounded">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Producto</label>
+                                                        <select name="Productos[${productoIndex}].Producto" class="form-control select-producto" required>
+                                                            <option value="">Seleccione un producto</option>
+                                                        </select>
+                                                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="form-label">Cantidad</label>
+                                                        <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad" required />
+                                                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label">Precio Unitario</label>
+                                                        <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal" required readonly />
+                                                        <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="form-label">Subtotal</label>
+                                                        <input class="form-control subtotal" readonly />
+                                                    </div>
+                                                    <div class="col-md-1 d-flex align-items-end">
+                                                        <button type="button" class="btn btn-danger btn-sm btn-remove-producto">
+                                                            <i class="bi bi-trash"></i> Eliminar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
+                                                <input type="hidden" name="Productos[${productoIndex}].VentaId" value="@Model.Id" />
+                                            </div>
+                                        `;
+
+                    $('#productosContainer').append(newProductoHtml);
+
+                    // Cargar productos en el select recién creado
+                    const nuevoSelect = $('#productosContainer .select-producto').last();
+                    cargarProductosDisponibles(nuevoSelect);
+
+                    productoIndex++;
+
+                    // Recalcular total
+                    calcularTotal();
+
+                    // Aplicar validación unobtrusive
+                    $.validator.unobtrusive.parse(newProductoHtml);
+                });
+
+                // Agregar nuevo método de pago
+                $('#btnAddMetodoPago').click(function () {
+                    const newMetodoPagoHtml = `
+                                            <div class="metodo-pago-item mb-3 border p-3 rounded">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Método de Pago</label>
+                                                        <select name="MetodosPago[${metodoPagoIndex}].Tipo" class="form-control select-metodo" required>
+                                                            <option value="">Seleccione método</option>
+                                                            <option value="0">Efectivo</option>
+                                                            <option value="1">Transferencia</option>
+                                                            <option value="2">Crédito</option>
+                                                        </select>
+                                                        <span class="text-danger field-validation-valid" data-valmsg-for="MetodosPago[${metodoPagoIndex}].Tipo" data-valmsg-replace="true"></span>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label">Valor</label>
+                                                        <input name="MetodosPago[${metodoPagoIndex}].Valor" type="number" min="0" step="0.01" 
+                                                               class="form-control valor-metodo" required />
+                                                        <span class="text-danger field-validation-valid" data-valmsg-for="MetodosPago[${metodoPagoIndex}].Valor" data-valmsg-replace="true"></span>
+                                                    </div>
+                                                    <div class="col-md-4 d-flex align-items-end">
+                                                        <div class="form-text"></div>
+                                                    </div>
+                                                    <div class="col-md-1 d-flex align-items-end">
+                                                        <button type="button" class="btn btn-danger btn-sm btn-remove-metodo">
+                                                            <i class="bi bi-trash"></i> Eliminar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="MetodosPago[${metodoPagoIndex}].Id" value="0" />
+                                                <input type="hidden" name="MetodosPago[${metodoPagoIndex}].VentaId" value="@Model.Id" />
+                                            </div>
+                                        `;
+
+                    $('#metodosPagoContainer').append(newMetodoPagoHtml);
+                    metodoPagoIndex++;
+
+                    // Aplicar validación unobtrusive
+                    $.validator.unobtrusive.parse(newMetodoPagoHtml);
+
+                    // Configurar evento change para el select
+                    const selectMetodo = $('#metodosPagoContainer .select-metodo').last();
+                    selectMetodo.change(function () {
+                        const tipo = $(this).find('option:selected').text();
+                        $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
                     });
 
-                    // Seleccionar el valor actual si es edición
-                    const currentValue = selectElement.attr('data-current-value');
-                    if (currentValue) {
-                        selectElement.val(currentValue).trigger('change');
+                    // Configurar evento input para el valor
+                    const valorInput = $('#metodosPagoContainer .valor-metodo').last();
+                    valorInput.on('input', calcularTotal);
+                });
+
+                // Eliminar producto
+                $(document).on('click', '.btn-remove-producto', function () {
+                    $(this).closest('.producto-item').remove();
+                    recalcularIndices();
+                    calcularTotal();
+                });
+
+                // Eliminar método de pago
+                $(document).on('click', '.btn-remove-metodo', function () {
+                    $(this).closest('.metodo-pago-item').remove();
+                    recalcularIndicesMetodos();
+                    calcularTotal();
+                });
+
+                // Manejar cambio de producto
+                $(document).on('change', '.select-producto', function () {
+                    const productoItem = $(this).closest('.producto-item');
+                    const productoSeleccionado = $(this).val();
+
+                    if (productoSeleccionado) {
+                        obtenerPrecioProducto(productoSeleccionado, function (precio) {
+                            const precioInput = productoItem.find('.precio');
+                            precioInput.val(formatoMoneda.format(precio));
+
+                            // Actualizar cantidad máxima disponible
+                            const cantidadInput = productoItem.find('.cantidad');
+                            const optionSeleccionada = $(this).find('option:selected');
+                            const cantidadDisponible = parseInt(optionSeleccionada.text().match(/Disponibles: (\d+)/)[1]);
+                            cantidadInput.attr('max', cantidadDisponible);
+
+                            // Calcular subtotal
+                            calcularSubtotal(productoItem);
+                        });
+                    } else {
+                        productoItem.find('.precio').val('');
+                        productoItem.find('.cantidad').val('1');
+                        productoItem.find('.subtotal').val('');
                     }
                 });
-            }
-            
-            // Función para obtener el precio de un producto
-            function obtenerPrecioProducto(nombreProducto, callback) {
-                $.get('@Url.Action("ObtenerPrecioProducto", "Venta")', { nombre: nombreProducto }, function(data) {
-                    callback(data.precioVenta);
-                });
-            }
-            
-            // Agregar nuevo producto
-            $('#btnAddProducto').click(function() {
-                const newProductoHtml = `
-                    <div class="producto-item mb-3 border p-3 rounded">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">Producto</label>
-                                <select name="Productos[${productoIndex}].Producto" class="form-control select-producto" required>
-                                    <option value="">Seleccione un producto</option>
-                                </select>
-                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Cantidad</label>
-                                <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad" required />
-                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Precio Unitario</label>
-                                <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal" required readonly />
-                                <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Subtotal</label>
-                                <input class="form-control subtotal" readonly />
-                            </div>
-                            <div class="col-md-1 d-flex align-items-end">
-                                <button type="button" class="btn btn-danger btn-sm btn-remove-producto">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </button>
-                            </div>
-                        </div>
-                        <input type="hidden" name="Productos[${productoIndex}].Id" value="0" />
-                        <input type="hidden" name="Productos[${productoIndex}].VentaId" value="@Model.Id" />
-                    </div>
-                `;
-                
-                $('#productosContainer').append(newProductoHtml);
-                
-                // Cargar productos en el select recién creado
-                const nuevoSelect = $('#productosContainer .select-producto').last();
-                cargarProductosDisponibles(nuevoSelect);
-                
-                productoIndex++;
-                
-                // Recalcular total
-                calcularTotal();
-                
-                // Aplicar validación unobtrusive
-                $.validator.unobtrusive.parse(newProductoHtml);
-            });
-            
-            // Agregar nuevo método de pago
-            $('#btnAddMetodoPago').click(function() {
-                const newMetodoPagoHtml = `
-                    <div class="metodo-pago-item mb-3 border p-3 rounded">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">Método de Pago</label>
-                                <select name="MetodosPago[${metodoPagoIndex}].Tipo" class="form-control select-metodo" required>
-                                    <option value="">Seleccione método</option>
-                                    <option value="0">Efectivo</option>
-                                    <option value="1">Transferencia</option>
-                                    <option value="2">Crédito</option>
-                                </select>
-                                <span class="text-danger field-validation-valid" data-valmsg-for="MetodosPago[${metodoPagoIndex}].Tipo" data-valmsg-replace="true"></span>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Valor</label>
-                                <input name="MetodosPago[${metodoPagoIndex}].Valor" type="number" min="0" step="0.01" 
-                                       class="form-control valor-metodo" required />
-                                <span class="text-danger field-validation-valid" data-valmsg-for="MetodosPago[${metodoPagoIndex}].Valor" data-valmsg-replace="true"></span>
-                            </div>
-                            <div class="col-md-4 d-flex align-items-end">
-                                <div class="form-text"></div>
-                            </div>
-                            <div class="col-md-1 d-flex align-items-end">
-                                <button type="button" class="btn btn-danger btn-sm btn-remove-metodo">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </button>
-                            </div>
-                        </div>
-                        <input type="hidden" name="MetodosPago[${metodoPagoIndex}].Id" value="0" />
-                        <input type="hidden" name="MetodosPago[${metodoPagoIndex}].VentaId" value="@Model.Id" />
-                    </div>
-                `;
-                
-                $('#metodosPagoContainer').append(newMetodoPagoHtml);
-                metodoPagoIndex++;
-                
-                // Aplicar validación unobtrusive
-                $.validator.unobtrusive.parse(newMetodoPagoHtml);
-                
-                // Configurar evento change para el select
-                const selectMetodo = $('#metodosPagoContainer .select-metodo').last();
-                selectMetodo.change(function() {
-                    const tipo = $(this).find('option:selected').text();
-                    $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
-                });
-                
-                // Configurar evento input para el valor
-                const valorInput = $('#metodosPagoContainer .valor-metodo').last();
-                valorInput.on('input', calcularTotal);
-            });
-            
-            // Eliminar producto
-            $(document).on('click', '.btn-remove-producto', function() {
-                $(this).closest('.producto-item').remove();
-                recalcularIndices();
-                calcularTotal();
-            });
-            
-            // Eliminar método de pago
-            $(document).on('click', '.btn-remove-metodo', function() {
-                $(this).closest('.metodo-pago-item').remove();
-                recalcularIndicesMetodos();
-                calcularTotal();
-            });
-            
-            // Manejar cambio de producto
-            $(document).on('change', '.select-producto', function() {
-                const productoItem = $(this).closest('.producto-item');
-                const productoSeleccionado = $(this).val();
-                
-                if (productoSeleccionado) {
-                    obtenerPrecioProducto(productoSeleccionado, function(precio) {
-                        const precioInput = productoItem.find('.precio');
-                        precioInput.val(formatoMoneda.format(precio));
-                        
-                        // Actualizar cantidad máxima disponible
-                        const cantidadInput = productoItem.find('.cantidad');
-                        const optionSeleccionada = $(this).find('option:selected');
-                        const cantidadDisponible = parseInt(optionSeleccionada.text().match(/Disponibles: (\d+)/)[1]);
-                        cantidadInput.attr('max', cantidadDisponible);
-                        
-                        // Calcular subtotal
-                        calcularSubtotal(productoItem);
-                    });
-                } else {
-                    productoItem.find('.precio').val('');
-                    productoItem.find('.cantidad').val('1');
-                    productoItem.find('.subtotal').val('');
-                }
-            });
-            
-            // Manejar cambio de método de pago
-            $(document).on('change', '.select-metodo', function() {
-                const tipo = $(this).find('option:selected').text();
-                $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
-                calcularTotal();
-            });
-            
-            // Calcular subtotal cuando cambia la cantidad
-            $(document).on('input', '.cantidad', function() {
-                const productoItem = $(this).closest('.producto-item');
-                calcularSubtotal(productoItem);
-            });
-            
-            // Función para calcular subtotal de un producto
-            function calcularSubtotal(productoItem) {
-                const cantidad = parseFloat(productoItem.find('.cantidad').val()) || 0;
-                const precioStr = productoItem.find('.precio').val().replace(/\./g, '');
-                const precio = parseFloat(precioStr) || 0;
-                const subtotal = cantidad * precio;
-                
-                productoItem.find('.subtotal').val(formatoMoneda.format(subtotal));
-                calcularTotal();
-            }
-            
-            // Función para calcular el total
-            function calcularTotal() {
-                let subtotal = 0;
-                
-                // Calcular subtotal de productos
-                $('.producto-item').each(function() {
-                    const subtotalStr = $(this).find('.subtotal').val().replace(/\./g, '');
-                    const subtotalValue = parseFloat(subtotalStr) || 0;
-                    subtotal += subtotalValue;
-                });
-                
-                // Aplicar descuento si existe
-                const porcentajeDescuento = parseFloat($('#descuentoInput').val()) || 0;
-                const descuento = (subtotal * porcentajeDescuento) / 100;
-                const total = subtotal - descuento;
-                
-                // Calcular total pagado
-                let totalPagado = 0;
-                $('.valor-metodo').each(function() {
-                    const valor = parseFloat($(this).val()) || 0;
-                    totalPagado += valor;
-                });
-                
-                const saldoPendiente = total - totalPagado;
-                
-                // Actualizar UI
-                $('#subtotalVenta').text(formatoMoneda.format(subtotal));
-                $('#descuentoAplicado').text(formatoMoneda.format(descuento));
-                $('#porcentajeDescuento').text(porcentajeDescuento);
-                $('#totalVenta').text(formatoMoneda.format(total));
-                $('#totalPagado').text(formatoMoneda.format(totalPagado));
-                $('#saldoPendiente').text(formatoMoneda.format(saldoPendiente));
-                
-                // Resaltar saldo pendiente
-                if (saldoPendiente > 0) {
-                    $('#saldoPendiente').addClass('text-danger').removeClass('text-success');
-                } else if (saldoPendiente < 0) {
-                    $('#saldoPendiente').addClass('text-warning').removeClass('text-success');
-                } else {
-                    $('#saldoPendiente').addClass('text-success').removeClass('text-danger');
-                }
-            }
-            
-            // Recalcular índices después de eliminar un producto
-            function recalcularIndices() {
-                productoIndex = 0;
-                $('.producto-item').each(function(index) {
-                    $(this).find('input, select').each(function() {
-                        const name = $(this).attr('name');
-                        if (name) {
-                            $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
-                        }
-                    });
-                    productoIndex++;
-                });
-            }
-            
-            // Recalcular índices después de eliminar un método de pago
-            function recalcularIndicesMetodos() {
-                metodoPagoIndex = 0;
-                $('.metodo-pago-item').each(function(index) {
-                    $(this).find('input, select').each(function() {
-                        const name = $(this).attr('name');
-                        if (name) {
-                            $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
-                        }
-                    });
-                    metodoPagoIndex++;
-                });
-            }
-            
-            // Cargar productos disponibles en los selects existentes al cargar la página
-            $('.select-producto').each(function() {
-                // Guardar el valor actual para seleccionarlo después de cargar
-                const currentValue = $(this).val();
-                if (currentValue) {
-                    $(this).attr('data-current-value', currentValue);
-                }
-                
-                cargarProductosDisponibles($(this));
-                
-                // Si ya hay un producto seleccionado (en caso de edición), cargar su precio
-                const productoSeleccionado = $(this).val();
-                if (productoSeleccionado) {
-                    obtenerPrecioProducto(productoSeleccionado, function(precio) {
-                        const productoItem = $(this).closest('.producto-item');
-                        productoItem.find('.precio').val(formatoMoneda.format(precio));
-                        calcularSubtotal(productoItem);
-                    }.bind(this));
-                }
-            });
-            
-            // Configurar eventos para métodos de pago existentes
-            $('.select-metodo').each(function() {
-                const tipo = $(this).find('option:selected').text();
-                $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
-                
-                $(this).change(function() {
+
+                // Manejar cambio de método de pago
+                $(document).on('change', '.select-metodo', function () {
                     const tipo = $(this).find('option:selected').text();
                     $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
                     calcularTotal();
                 });
-            });
-            
-            $('.valor-metodo').on('input', calcularTotal);
-            
-            // Calcular total inicial
-            calcularTotal();
-            
-            // Manejar cambios en el descuento
-            $('#descuentoInput').on('input', calcularTotal);
-            
-            // Validar formulario antes de enviar
-            $('#ventaForm').submit(function(e) {
-                if ($('.producto-item').length === 0) {
-                    e.preventDefault();
-                    alert('Debe agregar al menos un producto');
-                    return false;
+
+                // Calcular subtotal cuando cambia la cantidad
+                $(document).on('input', '.cantidad', function () {
+                    const productoItem = $(this).closest('.producto-item');
+                    calcularSubtotal(productoItem);
+                });
+
+                // Función para calcular subtotal de un producto
+                function calcularSubtotal(productoItem) {
+                    const cantidad = parseFloat(productoItem.find('.cantidad').val()) || 0;
+                    const precioStr = productoItem.find('.precio').val().replace(/\./g, '');
+                    const precio = parseFloat(precioStr) || 0;
+                    const subtotal = cantidad * precio;
+
+                    productoItem.find('.subtotal').val(formatoMoneda.format(subtotal));
+                    calcularTotal();
                 }
-                
-                // Validar que no se exceda la cantidad disponible
-                let errorCantidad = false;
-                $('.producto-item').each(function() {
-                    const cantidad = parseInt($(this).find('.cantidad').val());
-                    const max = parseInt($(this).find('.cantidad').attr('max')) || 9999;
-                    
-                    if (cantidad > max) {
-                        errorCantidad = true;
-                        $(this).find('.cantidad').addClass('is-invalid');
-                        $(this).find('.cantidad').next('.text-danger').text(`No hay suficiente stock (máximo: ${max})`);
+
+                // Manejar cambios en la mano de obra
+                $('#manoDeObraInput').on('input', function () {
+                    calcularTotal();
+                });
+
+                // Modifica la función calcularTotal para incluir la mano de obra
+                function calcularTotal() {
+                    let subtotal = 0;
+
+                    // Calcular subtotal de productos
+                    $('.producto-item').each(function () {
+                        const subtotalStr = $(this).find('.subtotal').val().replace(/\./g, '');
+                        const subtotalValue = parseFloat(subtotalStr) || 0;
+                        subtotal += subtotalValue;
+                    });
+
+                    // Aplicar descuento si existe
+                    const porcentajeDescuento = parseFloat($('#descuentoInput').val()) || 0;
+                    const descuento = (subtotal * porcentajeDescuento) / 100;
+                    const manoDeObra = parseFloat($('#manoDeObraInput').val()) || 0;
+                    const total = (subtotal - descuento) + manoDeObra;
+
+                    // Calcular total pagado
+                    let totalPagado = 0;
+                    $('.valor-metodo').each(function () {
+                        const valor = parseFloat($(this).val()) || 0;
+                        totalPagado += valor;
+                    });
+
+                    const saldoPendiente = total - totalPagado;
+
+                    // Actualizar UI
+                    $('#subtotalVenta').text(formatoMoneda.format(subtotal));
+                    $('#descuentoAplicado').text(formatoMoneda.format(descuento));
+                    $('#porcentajeDescuento').text(porcentajeDescuento);
+                    $('#manoDeObraAplicada').text(formatoMoneda.format(manoDeObra));
+                    $('#totalVenta').text(formatoMoneda.format(total));
+                    $('#totalPagado').text(formatoMoneda.format(totalPagado));
+                    $('#saldoPendiente').text(formatoMoneda.format(saldoPendiente));
+
+                    // Resaltar saldo pendiente
+                    if (saldoPendiente > 0) {
+                        $('#saldoPendiente').addClass('text-danger').removeClass('text-success');
+                    } else if (saldoPendiente < 0) {
+                        $('#saldoPendiente').addClass('text-warning').removeClass('text-success');
+                    } else {
+                        $('#saldoPendiente').addClass('text-success').removeClass('text-danger');
+                    }
+                }
+
+                // Recalcular índices después de eliminar un producto
+                function recalcularIndices() {
+                    productoIndex = 0;
+                    $('.producto-item').each(function (index) {
+                        $(this).find('input, select').each(function () {
+                            const name = $(this).attr('name');
+                            if (name) {
+                                $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
+                            }
+                        });
+                        productoIndex++;
+                    });
+                }
+
+                // Recalcular índices después de eliminar un método de pago
+                function recalcularIndicesMetodos() {
+                    metodoPagoIndex = 0;
+                    $('.metodo-pago-item').each(function (index) {
+                        $(this).find('input, select').each(function () {
+                            const name = $(this).attr('name');
+                            if (name) {
+                                $(this).attr('name', name.replace(/\[\d+\]/, `[${index}]`));
+                            }
+                        });
+                        metodoPagoIndex++;
+                    });
+                }
+
+                // Cargar productos disponibles en los selects existentes al cargar la página
+                $('.select-producto').each(function () {
+                    // Guardar el valor actual para seleccionarlo después de cargar
+                    const currentValue = $(this).val();
+                    if (currentValue) {
+                        $(this).attr('data-current-value', currentValue);
+                    }
+
+                    cargarProductosDisponibles($(this));
+
+                    // Si ya hay un producto seleccionado (en caso de edición), cargar su precio
+                    const productoSeleccionado = $(this).val();
+                    if (productoSeleccionado) {
+                        obtenerPrecioProducto(productoSeleccionado, function (precio) {
+                            const productoItem = $(this).closest('.producto-item');
+                            productoItem.find('.precio').val(formatoMoneda.format(precio));
+                            calcularSubtotal(productoItem);
+                        }.bind(this));
                     }
                 });
-                
-                if (errorCantidad) {
-                    e.preventDefault();
-                    alert('Hay productos con cantidades mayores al stock disponible');
-                    return false;
-                }
-                
-                // Validar que el total pagado no supere el total de la venta
-                const totalVenta = parseFloat($('#totalVenta').text().replace(/\./g, ''));
-                const totalPagado = parseFloat($('#totalPagado').text().replace(/\./g, '')) || 0;
-                
-                if (totalPagado > totalVenta) {
-                    e.preventDefault();
-                    alert('El total pagado no puede ser mayor que el total de la venta');
-                    return false;
-                }
-                
-                return true;
-            });
-        });
-    </script>
 
-    <style>
-        .producto-item, .metodo-pago-item {
-            background-color: #f8f9fa;
-        }
-        .subtotal {
-            font-weight: bold;
-            background-color: #e9ecef;
-        }
-        #totalVenta {
-            font-weight: bold;
-            color: #0d6efd;
-            font-size: 1.2rem;
-        }
-        .select-producto, .select-metodo {
-            width: 100%;
-        }
-        .text-danger {
-            color: #dc3545 !important;
-        }
-        .text-success {
-            color: #198754 !important;
-        }
-        .text-warning {
-            color: #fd7e14 !important;
-        }
-    </style>
+                // Configurar eventos para métodos de pago existentes
+                $('.select-metodo').each(function () {
+                    const tipo = $(this).find('option:selected').text();
+                    $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
+
+                    $(this).change(function () {
+                        const tipo = $(this).find('option:selected').text();
+                        $(this).closest('.metodo-pago-item').find('.form-text').text(tipo);
+                        calcularTotal();
+                    });
+                });
+
+                $('.valor-metodo').on('input', calcularTotal);
+
+                // Calcular total inicial
+                calcularTotal();
+
+                // Manejar cambios en el descuento
+                $('#descuentoInput').on('input', calcularTotal);
+
+                // Validar formulario antes de enviar
+                $('#ventaForm').submit(function (e) {
+                    if ($('.producto-item').length === 0) {
+                        e.preventDefault();
+                        alert('Debe agregar al menos un producto');
+                        return false;
+                    }
+
+                    // Validar que no se exceda la cantidad disponible
+                    let errorCantidad = false;
+                    $('.producto-item').each(function () {
+                        const cantidad = parseInt($(this).find('.cantidad').val());
+                        const max = parseInt($(this).find('.cantidad').attr('max')) || 9999;
+
+                        if (cantidad > max) {
+                            errorCantidad = true;
+                            $(this).find('.cantidad').addClass('is-invalid');
+                            $(this).find('.cantidad').next('.text-danger').text(`No hay suficiente stock (máximo: ${max})`);
+                        }
+                    });
+
+                    if (errorCantidad) {
+                        e.preventDefault();
+                        alert('Hay productos con cantidades mayores al stock disponible');
+                        return false;
+                    }
+
+                    // Validar que el total pagado no supere el total de la venta
+                    const totalVenta = parseFloat($('#totalVenta').text().replace(/\./g, ''));
+                    const totalPagado = parseFloat($('#totalPagado').text().replace(/\./g, '')) || 0;
+
+                    if (totalPagado > totalVenta) {
+                        e.preventDefault();
+                        alert('El total pagado no puede ser mayor que el total de la venta');
+                        return false;
+                    }
+
+                    return true;
+                });
+            });
+        </script>
+
+        <style>
+            .producto-item,
+            .metodo-pago-item {
+                background-color: #f8f9fa;
+            }
+
+            .subtotal {
+                font-weight: bold;
+                background-color: #e9ecef;
+            }
+
+            #totalVenta {
+                font-weight: bold;
+                color: #0d6efd;
+                font-size: 1.2rem;
+            }
+
+            .select-producto,
+            .select-metodo {
+                width: 100%;
+            }
+
+            .text-danger {
+                color: #dc3545 !important;
+            }
+
+            .text-success {
+                color: #198754 !important;
+            }
+
+            .text-warning {
+                color: #fd7e14 !important;
+            }
+        </style>
 }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
