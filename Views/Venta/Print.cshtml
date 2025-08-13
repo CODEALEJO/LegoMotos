@@ -183,6 +183,10 @@
             <p>Subtotal: $@Model.Subtotal.ToString("N0")</p>
             <p>Descuento (@Model.Descuento%): -$@((Model.Subtotal * Model.Descuento / 100).ToString("N0"))</p>
         }
+        @if (Model.ManoDeObra > 0)
+        {
+            <p>Mano de Obra: $@Model.ManoDeObra.ToString("N0")</p>
+        }
         <p>TOTAL: $@Model.Total.ToString("N0")</p>
     </div>
 

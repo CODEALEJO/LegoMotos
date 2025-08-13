@@ -124,7 +124,7 @@ namespace LavaderoMotos.Controllers
                 }
 
                 var subtotal = venta.Productos.Sum(p => p.Cantidad * p.Precio);
-                var total = subtotal * (1 - venta.Descuento / 100m);
+                var total = (subtotal * (1 - venta.Descuento / 100m)) + venta.ManoDeObra; // Agregamos ManoDeObra
                 var totalPagado = venta.MetodosPago.Sum(m => m.Valor);
 
                 if (Math.Abs(totalPagado - total) > 0.01m)
