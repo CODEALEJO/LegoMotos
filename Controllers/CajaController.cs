@@ -63,51 +63,51 @@ namespace LavaderoMotos.Controllers
         }
 
 
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Apertura([Bind("SaldoInicialEfectivo")] Caja caja)
-{
-    try
-    {
-        // Verificar si ya hay una caja abierta
-        var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
-        if (cajaAbierta != null)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Apertura([Bind("SaldoInicialEfectivo")] Caja caja)
         {
-            TempData["ErrorMessage"] = "Ya hay una caja abierta. Debe cerrarla antes de abrir una nueva.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                // Verificar si ya hay una caja abierta
+                var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
+                if (cajaAbierta != null)
+                {
+                    TempData["ErrorMessage"] = "Ya hay una caja abierta. Debe cerrarla antes de abrir una nueva.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Crear nueva instancia para evitar problemas de binding
+                var nuevaCaja = new Caja
+                {
+                    SaldoInicialEfectivo = caja.SaldoInicialEfectivo,
+                    FechaApertura = DateTime.Now,
+                    UsuarioApertura = User.Identity?.Name ?? "Sistema",
+                    SaldoFinalEfectivo = caja.SaldoInicialEfectivo,
+                    SaldoFinalTransferencia = 0
+                };
+
+                // Validar manualmente el saldo inicial
+                if (nuevaCaja.SaldoInicialEfectivo < 0)
+                {
+                    ModelState.AddModelError("SaldoInicialEfectivo", "El saldo debe ser mayor o igual a 0");
+                    return View(nuevaCaja);
+                }
+
+                // Saltar validación del modelo y guardar directamente
+                _context.Add(nuevaCaja);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Caja abierta correctamente con saldo inicial: {nuevaCaja.SaldoInicialEfectivo:C}";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al abrir caja");
+                TempData["ErrorMessage"] = $"Error al abrir caja: {ex.Message}";
+                return View(caja);
+            }
         }
-
-        // Crear nueva instancia para evitar problemas de binding
-        var nuevaCaja = new Caja
-        {
-            SaldoInicialEfectivo = caja.SaldoInicialEfectivo,
-            FechaApertura = DateTime.Now,
-            UsuarioApertura = User.Identity?.Name ?? "Sistema",
-            SaldoFinalEfectivo = caja.SaldoInicialEfectivo,
-            SaldoFinalTransferencia = 0
-        };
-
-        // Validar manualmente el saldo inicial
-        if (nuevaCaja.SaldoInicialEfectivo < 0)
-        {
-            ModelState.AddModelError("SaldoInicialEfectivo", "El saldo debe ser mayor o igual a 0");
-            return View(nuevaCaja);
-        }
-
-        // Saltar validación del modelo y guardar directamente
-        _context.Add(nuevaCaja);
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = $"Caja abierta correctamente con saldo inicial: {nuevaCaja.SaldoInicialEfectivo:C}";
-        return RedirectToAction(nameof(Index));
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error al abrir caja");
-        TempData["ErrorMessage"] = $"Error al abrir caja: {ex.Message}";
-        return View(caja);
-    }
-}
 
         public async Task<IActionResult> Cierre(int id)
         {

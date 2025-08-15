@@ -6,7 +6,7 @@
 
 <div class="container">
     <h2>@ViewData["Title"]</h2>
-    
+
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -14,7 +14,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    
+
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -54,6 +54,8 @@
                     <th>Fecha Cierre</th>
                     <th>Usuario Apertura</th>
                     <th>Saldo Inicial</th>
+                    <th>Saldo Final Efectivo</th>
+                    <th>Saldo Final Transferencia</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -66,6 +68,26 @@
                         <td>@(item.FechaCierre?.ToString("g") ?? "-")</td>
                         <td>@item.UsuarioApertura</td>
                         <td class="text-end">@item.SaldoInicialEfectivo.ToString("N0")</td>
+                        <td class="text-end">
+                            @if (item.FechaCierre != null)
+                            {
+                                @item.SaldoFinalEfectivo.ToString("N0")
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (item.FechaCierre != null)
+                            {
+                                @item.SaldoFinalTransferencia.ToString("N0")
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                        </td>
                         <td>
                             @if (item.FechaCierre == null)
                             {
