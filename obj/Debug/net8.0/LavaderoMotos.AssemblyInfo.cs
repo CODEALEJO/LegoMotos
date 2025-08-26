@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LavaderoMotos")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bfc58a277e26b7e316f00418f0203a37b7383292")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a682bf29f15365276f2bf0005e23e9d88cf270ea")]
 [assembly: System.Reflection.AssemblyProductAttribute("LavaderoMotos")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LavaderoMotos")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

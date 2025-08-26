@@ -43,23 +43,24 @@ namespace LavaderoMotos.Controllers
             return View(ventas);
         }
 
-        public IActionResult Create()
-        {
-            // Verificar si hay caja abierta pero no bloquear la creación
-            var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
+       public IActionResult Create()
+{
+    var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
 
-            if (cajaAbierta == null)
-            {
-                TempData["WarningMessage"] = "No hay caja abierta. La venta no se asociará a ninguna caja.";
-            }
+    if (cajaAbierta == null)
+    {
+        TempData["ErrorMessage"] = "Antes de generar ventas debes abrir la caja del día.";
+        return RedirectToAction("Index"); // 🚨 Redirige al listado en vez de mostrar CreateEdit
+    }
 
-            return View("CreateEdit", new Venta
-            {
-                Fecha = DateTime.Now,
-                Productos = new List<ProductoVenta>(),
-                CajaId = cajaAbierta.Id // Asignar null si no hay caja abierta
-            });
-        }
+    return View("CreateEdit", new Venta
+    {
+        Fecha = DateTime.Now,
+        Productos = new List<ProductoVenta>(),
+        CajaId = cajaAbierta.Id
+    });
+}
+
 
         public IActionResult Edit(int id)
         {
