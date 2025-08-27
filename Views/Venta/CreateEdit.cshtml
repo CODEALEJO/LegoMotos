@@ -48,6 +48,30 @@
                     <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
             </div>
+  <!-- NUEVOS CAMPOS AGREGADOS AQUÍ -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="NombreCliente" class="form-label">Nombre del Cliente</label>
+                        <input asp-for="NombreCliente" class="form-control" />
+                        <span asp-validation-for="NombreCliente" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="CelularCliente" class="form-label">Celular</label>
+                        <input asp-for="CelularCliente" class="form-control" />
+                        <span asp-validation-for="CelularCliente" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="CedulaCliente" class="form-label">Cédula</label>
+                        <input asp-for="CedulaCliente" class="form-control" />
+                        <span asp-validation-for="CedulaCliente" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <hr />

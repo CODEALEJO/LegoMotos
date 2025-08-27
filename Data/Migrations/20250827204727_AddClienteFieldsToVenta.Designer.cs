@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LavaderoMotos.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250827031955_AddCantidadprop")]
-    partial class AddCantidadprop
+    [Migration("20250827204727_AddClienteFieldsToVenta")]
+    partial class AddClienteFieldsToVenta
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -200,6 +200,12 @@ namespace LavaderoMotos.Data.Migrations
                     b.Property<int?>("CajaId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CedulaCliente")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CelularCliente")
+                        .HasColumnType("longtext");
+
                     b.Property<decimal>("Descuento")
                         .HasColumnType("decimal(5,2)");
 
@@ -214,6 +220,9 @@ namespace LavaderoMotos.Data.Migrations
 
                     b.Property<decimal>("ManoDeObra")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NombreCliente")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Placa")
                         .IsRequired()

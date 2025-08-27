@@ -215,6 +215,9 @@ namespace LavaderoMotos.Controllers
                                 existente.Kilometraje = venta.Kilometraje;
                                 existente.Descuento = venta.Descuento;
                                 existente.Fecha = venta.Fecha;
+                                existente.NombreCliente = venta.NombreCliente;
+                                existente.CelularCliente = venta.CelularCliente;
+                                existente.CedulaCliente = venta.CedulaCliente;
 
                                 foreach (var producto in venta.Productos)
                                 {

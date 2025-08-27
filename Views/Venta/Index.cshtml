@@ -18,6 +18,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    
     <!-- Filtros de búsqueda -->
     <div class="card mb-4 mx-auto" style="max-width: 1000px;">
         <div class="card-body">
@@ -67,6 +68,37 @@
                 <div id="collapse-@venta.Id" class="accordion-collapse collapse" aria-labelledby="heading-@venta.Id"
                     data-bs-parent="#ventasAccordion">
                     <div class="accordion-body">
+                        <!-- SECCIÓN DE DATOS DEL CLIENTE -->
+                        @if (!string.IsNullOrEmpty(venta.NombreCliente) || !string.IsNullOrEmpty(venta.CelularCliente) || !string.IsNullOrEmpty(venta.CedulaCliente))
+                        {
+                            <div class="row mb-3 border-bottom pb-3">
+                                <div class="col-12">
+                                    <h5 class="mb-3"><i class="bi bi-person"></i> Datos del Cliente</h5>
+                                    <div class="row">
+                                        @if (!string.IsNullOrEmpty(venta.NombreCliente))
+                                        {
+                                            <div class="col-md-4">
+                                                <p><strong>Nombre:</strong> @venta.NombreCliente</p>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(venta.CelularCliente))
+                                        {
+                                            <div class="col-md-4">
+                                                <p><strong>Celular:</strong> @venta.CelularCliente</p>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(venta.CedulaCliente))
+                                        {
+                                            <div class="col-md-4">
+                                                <p><strong>Cédula:</strong> @venta.CedulaCliente</p>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Información de la venta -->
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <p><strong>Kilometraje:</strong> @venta.Kilometraje</p>
@@ -111,11 +143,9 @@
                                     {
                                         <tr>
                                             <td colspan="3" class="text-end fw-bold">Descuento (@venta.Descuento%):</td>
-                                            <td class="fw-bold text-danger">-$@((venta.Subtotal * venta.Descuento /
-                                                                                        100).ToString("N0"))</td>
+                                            <td class="fw-bold text-danger">-$@((venta.Subtotal * venta.Descuento / 100).ToString("N0"))</td>
                                         </tr>
                                     }
-                                    <!-- Agregar esta fila para Mano de Obra -->
                                     @if (venta.ManoDeObra > 0)
                                     {
                                         <tr>

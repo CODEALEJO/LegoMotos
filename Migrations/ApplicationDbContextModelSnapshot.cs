@@ -197,6 +197,12 @@ namespace LavaderoMotos.Migrations
                     b.Property<int?>("CajaId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CedulaCliente")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CelularCliente")
+                        .HasColumnType("longtext");
+
                     b.Property<decimal>("Descuento")
                         .HasColumnType("decimal(5,2)");
 
@@ -211,6 +217,9 @@ namespace LavaderoMotos.Migrations
 
                     b.Property<decimal>("ManoDeObra")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NombreCliente")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Placa")
                         .IsRequired()

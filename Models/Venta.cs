@@ -27,6 +27,11 @@ namespace LavaderoMotos.Models
         [Range(0, int.MaxValue, ErrorMessage = "El kilometraje debe ser un número positivo.")]
         public int Kilometraje { get; set; }
 
+
+        public string? NombreCliente { get; set; }
+        public string? CelularCliente { get; set; }
+        public string? CedulaCliente { get; set; }
+
         public List<ProductoVenta> Productos { get; set; }
         public List<MetodoPago> MetodosPago { get; set; }
 
@@ -48,7 +53,7 @@ namespace LavaderoMotos.Models
 
         [NotMapped]
         public string ManoDeObraFormateado => ManoDeObra.ToString("N0", CultureInfo.InvariantCulture);
-        
+
         [NotMapped]
         public decimal Total => (Subtotal * (1 - Descuento / 100m)) + ManoDeObra;
 
