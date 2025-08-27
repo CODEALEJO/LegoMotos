@@ -59,7 +59,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <label class="form-label">Producto</label>
-                            <select asp-for="Productos[i].Producto" class="form-control select-producto" required>
+                            <select asp-for="Productos[i].Producto" class="form-control select-producto" >
                                 <option value="">Seleccione un producto</option>
                             </select>
                             <span asp-validation-for="Productos[i].Producto" class="text-danger"></span>
@@ -67,13 +67,13 @@
                         <div class="col-md-2">
                             <label class="form-label">Cantidad</label>
                             <input asp-for="Productos[i].Cantidad" type="number" min="1" class="form-control cantidad"
-                                required />
+                                 />
                             <span asp-validation-for="Productos[i].Cantidad" class="text-danger"></span>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Precio Unitario</label>
                             <input asp-for="Productos[i].Precio" type="text" inputmode="decimal" class="form-control precio"
-                                required readonly />
+                                 readonly />
                             <span asp-validation-for="Productos[i].Precio" class="text-danger"></span>
                         </div>
                         <div class="col-md-2">
@@ -255,19 +255,19 @@
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-label">Producto</label>
-                                                        <select name="Productos[${productoIndex}].Producto" class="form-control select-producto" required>
+                                                        <select name="Productos[${productoIndex}].Producto" class="form-control select-producto" >
                                                             <option value="">Seleccione un producto</option>
                                                         </select>
                                                         <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Producto" data-valmsg-replace="true"></span>
                                                     </div>
                                                     <div class="col-md-2">
                                                         <label class="form-label">Cantidad</label>
-                                                        <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad" required />
+                                                        <input name="Productos[${productoIndex}].Cantidad" type="number" min="1" value="1" class="form-control cantidad"  />
                                                         <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Cantidad" data-valmsg-replace="true"></span>
                                                     </div>
                                                     <div class="col-md-3">
                                                         <label class="form-label">Precio Unitario</label>
-                                                        <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal" required readonly />
+                                                        <input name="Productos[${productoIndex}].Precio" class="form-control precio" type="text" inputmode="decimal"  readonly />
                                                         <span class="text-danger field-validation-valid" data-valmsg-for="Productos[${productoIndex}].Precio" data-valmsg-replace="true"></span>
                                                     </div>
                                                     <div class="col-md-2">
@@ -538,11 +538,6 @@
 
                 // Validar formulario antes de enviar
                 $('#ventaForm').submit(function (e) {
-                    if ($('.producto-item').length === 0) {
-                        e.preventDefault();
-                        alert('Debe agregar al menos un producto');
-                        return false;
-                    }
 
                     // Validar que no se exceda la cantidad disponible
                     let errorCantidad = false;

@@ -43,23 +43,23 @@ namespace LavaderoMotos.Controllers
             return View(ventas);
         }
 
-       public IActionResult Create()
-{
-    var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
+        public IActionResult Create()
+        {
+            var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
 
-    if (cajaAbierta == null)
-    {
-        TempData["ErrorMessage"] = "Antes de generar ventas debes abrir la caja del día.";
-        return RedirectToAction("Index"); // 🚨 Redirige al listado en vez de mostrar CreateEdit
-    }
+            if (cajaAbierta == null)
+            {
+                TempData["ErrorMessage"] = "Antes de generar ventas debes abrir la caja del día.";
+                return RedirectToAction("Index"); // 🚨 Redirige al listado en vez de mostrar CreateEdit
+            }
 
-    return View("CreateEdit", new Venta
-    {
-        Fecha = DateTime.Now,
-        Productos = new List<ProductoVenta>(),
-        CajaId = cajaAbierta.Id
-    });
-}
+            return View("CreateEdit", new Venta
+            {
+                Fecha = DateTime.Now,
+                Productos = new List<ProductoVenta>(),
+                CajaId = cajaAbierta.Id
+            });
+        }
 
 
         public IActionResult Edit(int id)
@@ -112,11 +112,11 @@ namespace LavaderoMotos.Controllers
                 // Verificar si hay caja abierta (pero no bloquear si no hay)
                 var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
 
-                if (venta.Productos == null || venta.Productos.Count == 0)
-                {
-                    TempData["ErrorMessage"] = "Debe agregar al menos un producto";
-                    return View("CreateEdit", venta);
-                }
+                // if (venta.Productos == null || venta.Productos.Count == 0)
+                // {
+                //     TempData["ErrorMessage"] = "Debe agregar al menos un producto";
+                //     return View("CreateEdit", venta);
+                // }
 
                 if (venta.MetodosPago == null || venta.MetodosPago.Count == 0)
                 {
@@ -124,7 +124,9 @@ namespace LavaderoMotos.Controllers
                     return View("CreateEdit", venta);
                 }
 
-                var subtotal = venta.Productos.Sum(p => p.Cantidad * p.Precio);
+                var subtotal = (venta.Productos != null && venta.Productos.Any())
+                    ? venta.Productos.Sum(p => p.Cantidad * p.Precio)
+                    : 0m;
                 var total = (subtotal * (1 - venta.Descuento / 100m)) + venta.ManoDeObra; // Agregamos ManoDeObra
                 var totalPagado = venta.MetodosPago.Sum(m => m.Valor);
 

@@ -33,7 +33,9 @@ namespace LavaderoMotos.Models
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Monto { get; set; }
-
+        [Required]
+        public int Cantidad { get; set; }
+        
         [Required]
         [StringLength(500)]
         public string Descripcion { get; set; }

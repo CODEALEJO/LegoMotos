@@ -4,9 +4,26 @@
     ViewData["Title"] = "Detalle de Caja";
 }
 
+<!-- Mostrar mensajes de éxito/error -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="container">
     <h2>@ViewData["Title"]</h2>
-    
+
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card">
@@ -15,15 +32,15 @@
                     <dl class="row">
                         <dt class="col-sm-5">Fecha Apertura:</dt>
                         <dd class="col-sm-7">@Model.FechaApertura.ToString("g")</dd>
-                        
+
                         <dt class="col-sm-5">Usuario Apertura:</dt>
                         <dd class="col-sm-7">@Model.UsuarioApertura</dd>
-                        
+
                         @if (Model.FechaCierre != null)
                         {
                             <dt class="col-sm-5">Fecha Cierre:</dt>
                             <dd class="col-sm-7">@Model.FechaCierre.Value.ToString("g")</dd>
-                            
+
                             <dt class="col-sm-5">Usuario Cierre:</dt>
                             <dd class="col-sm-7">@Model.UsuarioCierre</dd>
                         }
@@ -98,7 +115,7 @@
         <a asp-action="Index" class="btn btn-danger">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
-        
+
         @if (Model.FechaCierre == null)
         {
             <a asp-action="Cierre" asp-route-id="@Model.Id" class="btn btn-success ms-2">
