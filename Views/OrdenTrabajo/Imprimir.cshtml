@@ -1,0 +1,294 @@
+@model LavaderoMotos.Models.OrdenTrabajo
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Orden de Trabajo #@Model.Id</title>
+    <style>
+        /* Estilos específicos para impresora térmica de 80mm */
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 76mm;
+            margin: 0;
+            padding: 2mm;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+
+        .header h2 {
+            font-size: 14px;
+            margin: 2mm 0;
+            font-weight: bold;
+        }
+
+        .header p {
+            margin: 1mm 0;
+            font-size: 10px;
+        }
+
+        .document-title {
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            margin: 2mm 0;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 2mm;
+        }
+
+        .section {
+            margin: 3mm 0;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 3mm;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 2mm;
+            border-bottom: 1px solid #000;
+            padding-bottom: 1mm;
+        }
+
+        .row {
+            display: flex;
+            margin-bottom: 1mm;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 35mm;
+        }
+
+        .value {
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2mm 0;
+            font-size: 11px;
+        }
+
+        th {
+            text-align: left;
+            border-bottom: 1px solid #000;
+            padding: 1mm 0;
+            font-size: 11px;
+        }
+
+        td {
+            padding: 1mm 0;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .total-row {
+            font-weight: bold;
+            border-top: 1px solid #000;
+            margin-top: 2mm;
+            padding-top: 2mm;
+        }
+
+        .signature-area {
+            margin-top: 5mm;
+            border-top: 1px dashed #000;
+            padding-top: 3mm;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 80%;
+            margin: 15px auto;
+            padding-top: 25px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 5mm;
+            font-size: 10px;
+            border-top: 1px dashed #000;
+            padding-top: 2mm;
+        }
+
+        .no-print {
+            display: none;
+        }
+
+        .completed {
+            color: green;
+        }
+
+        .pending {
+            color: orange;
+        }
+
+        @@media print {
+            @@page {
+                size: 80mm auto;
+                margin: 0;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        @@media screen {
+            .no-print {
+                display: block;
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            .btn-volver {
+                background-color: #dc3545;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                text-decoration: none;
+                font-size: 14px;
+                display: inline-block;
+                margin: 10px auto;
+            }
+
+            .btn-volver:hover {
+                background-color: #bb2d3b;
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>LEGO MOTORS</h2>
+        <p>NIT: 123456789-0</p>
+        <p>Cra 39 #66-20- Villa hermosa</p>
+        <p>Tel: 304 6571456</p>
+    </div>
+
+    <div class="document-title">
+        ORDEN DE TRABAJO #@Model.Id
+    </div>
+
+    <div class="section">
+        <div class="section-title">INFORMACIÓN DEL VEHÍCULO</div>
+        <div class="row">
+            <div class="label">Vehículo:</div>
+            <div class="value">@Model.NombreVehiculo</div>
+        </div>
+        <div class="row">
+            <div class="label">Placa:</div>
+            <div class="value">@Model.Placa</div>
+        </div>
+        <div class="row">
+            <div class="label">Kilometraje:</div>
+            <div class="value">@(Model.Kilometraje?.ToString() ?? "N/A") km</div>
+        </div>
+        <div class="row">
+            <div class="label">Fecha Ingreso:</div>
+            <div class="value">@Model.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+        <div class="row">
+            <div class="label">Estado:</div>
+            <div class="value">@Model.Estado</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">SERVICIOS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th class="text-right">Precio</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var servicio in Model.Servicios)
+                {
+                    <tr>
+                        <td>@servicio.Descripcion</td>
+                        <td class="text-right">$@servicio.Precio.ToString("N0")</td>
+                        <td class="@(servicio.Completado ? "completed" : "pending")">
+                            @(servicio.Completado ? "✓" : "●")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="total text-right">
+            <p><strong>TOTAL SERVICIOS: $@Model.TotalServicios.ToString("N0")</strong></p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">INFORMACIÓN DE PAGO</div>
+        <div class="row">
+            <div class="label">Total Servicios:</div>
+            <div class="value">$@Model.TotalServicios.ToString("N0")</div>
+        </div>
+        <div class="row">
+            <div class="label">Adelanto:</div>
+            <div class="value">$@((Model.Adelanto ?? 0).ToString("N0"))</div>
+        </div>
+        <div class="row">
+            <div class="label">Pendiente:</div>
+            <div class="value"><strong>$@Model.PendientePagar.ToString("N0")</strong></div>
+        </div>
+    </div>
+
+    <div class="signature-area">
+        <div class="signature-line">
+            Firma del Cliente
+        </div>
+        <div class="signature-line">
+            Firma del Mecánico
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>¡Gracias por su confianza!</p>
+        <p>--------------------------------</p>
+        <p><strong>Nota:</strong> Después de 2 días de notificado, se cobrará parqueadero de $20.000/día</p>
+    </div>
+
+    <div class="no-print">
+        <a asp-action="Index" class="btn-volver">
+            ← Volver al Listado
+        </a>
+    </div>
+
+    <script>
+        window.onload = function () {
+            setTimeout(function () {
+                window.print();
+                setTimeout(function () {
+                    window.close();
+                }, 100);
+            }, 200);
+        };
+    </script>
+</body>
+</html>

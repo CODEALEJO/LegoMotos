@@ -70,7 +70,13 @@
                         Inventario
                     </a>
                 
-                     <a class="nav-button btn btn-outline-warning @(ViewContext.RouteData.Values["controller"].ToString() == "Caja" ? "active-nav-button" : "")"
+                    <!-- Botón de Órdenes de Trabajo -->
+                    <a class="nav-button btn btn-outline-info @(ViewContext.RouteData.Values["controller"].ToString() == "OrdenTrabajo" ? "active-nav-button" : "")"
+                        asp-controller="OrdenTrabajo" asp-action="Index">
+                        <i class="bi bi-tools"></i> Órdenes de Trabajo
+                    </a>
+                
+                    <a class="nav-button btn btn-outline-warning @(ViewContext.RouteData.Values["controller"].ToString() == "Caja" ? "active-nav-button" : "")"
                         asp-controller="Caja" asp-action="Index">
                         Caja
                     </a>

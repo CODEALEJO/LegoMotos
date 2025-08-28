@@ -1,0 +1,63 @@
+@model IEnumerable<LavaderoMotos.Models.OrdenTrabajo>
+
+@{
+    ViewData["Title"] = "Órdenes de Trabajo";
+}
+
+<h2>Órdenes de Trabajo</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Crear Nueva Orden</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Vehículo</th>
+            <th>Placa</th>
+            <th>Fecha Ingreso</th>
+            <th>Total Servicios</th>
+            <th>Adelanto</th>
+            <th>Pendiente</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.NombreVehiculo)</td>
+                <td>@Html.DisplayFor(modelItem => item.Placa)</td>
+                <td>@Html.DisplayFor(modelItem => item.FechaIngresoFormateada)</td>
+                <td>@Html.DisplayFor(modelItem => item.TotalServiciosFormateado)</td>
+                <td>@Html.DisplayFor(modelItem => item.AdelantoFormateado)</td>
+                <td>@Html.DisplayFor(modelItem => item.PendientePagarFormateado)</td>
+                <td>@Html.DisplayFor(modelItem => item.Estado)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
+                    <!-- Botón de Imprimir -->
+                    <a asp-action="Imprimir" asp-route-id="@item.Id" class="btn btn-primary btn-sm" target="_blank">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,66 @@
+@model LavaderoMotos.Models.OrdenTrabajo
+
+@{
+    ViewData["Title"] = "Detalles de Orden de Trabajo";
+}
+
+<h2>Detalles de Orden de Trabajo</h2>
+
+<div>
+    <h4>Información del Vehículo</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>Vehículo:</dt>
+        <dd>@Html.DisplayFor(model => model.NombreVehiculo)</dd>
+
+        <dt>Placa:</dt>
+        <dd>@Html.DisplayFor(model => model.Placa)</dd>
+
+        <dt>Kilometraje:</dt>
+        <dd>@Html.DisplayFor(model => model.Kilometraje)</dd>
+
+        <dt>Fecha Ingreso:</dt>
+        <dd>@Html.DisplayFor(model => model.FechaIngresoFormateada)</dd>
+
+        <dt>Estado:</dt>
+        <dd>@Html.DisplayFor(model => model.Estado)</dd>
+    </dl>
+
+    <h4>Servicios</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Servicio</th>
+                <th>Precio</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var servicio in Model.Servicios)
+            {
+                <tr>
+                    <td>@servicio.Descripcion</td>
+                    <td>@servicio.PrecioFormateado</td>
+                    <td>@(servicio.Completado ? "Completado" : "Pendiente")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Información de Pago</h4>
+    <dl class="dl-horizontal">
+        <dt>Total Servicios:</dt>
+        <dd>@Model.TotalServiciosFormateado</dd>
+
+        <dt>Adelanto:</dt>
+        <dd>@Model.AdelantoFormateado</dd>
+
+        <dt>Pendiente a Pagar:</dt>
+        <dd>@Model.PendientePagarFormateado</dd>
+    </dl>
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-action="Index" class="btn btn-danger">Volver</a>
+</p>
