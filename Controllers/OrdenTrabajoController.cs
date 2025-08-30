@@ -48,7 +48,7 @@ namespace LavaderoMotos.Controllers
             try
             {
                 var ordenTrabajo = await _context.OrdenesTrabajo
-                    .Include(o => o.Servicios)
+                    .Include(o => o.Servicios) // Esto es crucial
                     .FirstOrDefaultAsync(m => m.Id == id);
 
                 if (ordenTrabajo == null)
@@ -110,23 +110,20 @@ namespace LavaderoMotos.Controllers
 
                     orden.PendientePagar = orden.TotalServicios - (orden.Adelanto ?? 0);
 
-                    _context.OrdenesTrabajo.Add(orden);
-                    await _context.SaveChangesAsync();
-
-                    // Agregar servicios
+                    // Agregar servicios a la orden
                     foreach (var servicioVm in model.Servicios.Where(s => !string.IsNullOrEmpty(s.Descripcion)))
                     {
                         var servicio = new ServicioOrden
                         {
                             Descripcion = servicioVm.Descripcion,
                             Precio = servicioVm.Precio,
-                            Completado = servicioVm.Completado,
-                            OrdenTrabajoId = orden.Id
+                            Completado = servicioVm.Completado
                         };
-                        _context.ServiciosOrden.Add(servicio);
+                        orden.Servicios.Add(servicio);
                     }
 
-                    await _context.SaveChangesAsync();
+                    _context.OrdenesTrabajo.Add(orden);
+                    await _context.SaveChangesAsync(); // SOLO UNA LLAMADA
 
                     TempData["SuccessMessage"] = "Orden de trabajo creada correctamente.";
                     return RedirectToAction(nameof(Index));
@@ -141,6 +138,7 @@ namespace LavaderoMotos.Controllers
                 return View(model);
             }
         }
+
 
         // GET: OrdenTrabajo/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -161,11 +159,13 @@ namespace LavaderoMotos.Controllers
                     return NotFound();
                 }
 
+                // En el método Edit
                 var model = new OrdenTrabajoViewModel
                 {
                     Orden = ordenTrabajo,
                     Servicios = ordenTrabajo.Servicios.Select(s => new ServicioViewModel
                     {
+                        Id = s.Id, // Incluir el ID
                         Descripcion = s.Descripcion,
                         Precio = s.Precio,
                         Completado = s.Completado
@@ -188,7 +188,6 @@ namespace LavaderoMotos.Controllers
             }
         }
 
-        // POST: OrdenTrabajo/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, OrdenTrabajoViewModel model)
@@ -226,8 +225,7 @@ namespace LavaderoMotos.Controllers
                     ordenExistente.PendientePagar = ordenExistente.TotalServicios - (ordenExistente.Adelanto ?? 0);
 
                     // Eliminar servicios existentes
-                    var serviciosExistentes = _context.ServiciosOrden.Where(s => s.OrdenTrabajoId == id);
-                    _context.ServiciosOrden.RemoveRange(serviciosExistentes);
+                    _context.ServiciosOrden.RemoveRange(ordenExistente.Servicios);
 
                     // Agregar nuevos servicios
                     foreach (var servicioVm in model.Servicios.Where(s => !string.IsNullOrEmpty(s.Descripcion)))
@@ -239,29 +237,16 @@ namespace LavaderoMotos.Controllers
                             Completado = servicioVm.Completado,
                             OrdenTrabajoId = id
                         };
-                        _context.ServiciosOrden.Add(servicio);
+                        ordenExistente.Servicios.Add(servicio);
                     }
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(); // SOLO UNA LLAMADA
 
                     TempData["SuccessMessage"] = "Orden de trabajo actualizada correctamente.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 return View("Create", model);
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                if (!OrdenTrabajoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    _logger.LogError(ex, "Error de concurrencia al editar la orden de trabajo");
-                    TempData["ErrorMessage"] = "Error de concurrencia al editar la orden de trabajo.";
-                    return View("Create", model);
-                }
             }
             catch (Exception ex)
             {
@@ -345,7 +330,7 @@ namespace LavaderoMotos.Controllers
         {
             return _context.OrdenesTrabajo.Any(e => e.Id == id);
         }
-        
+
         // GET: OrdenTrabajo/Imprimir/5
         public async Task<IActionResult> Imprimir(int? id)
         {
