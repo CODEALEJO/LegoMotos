@@ -96,6 +96,7 @@
             </button>
         </div>
 
+        <!-- En la sección de Información de Pago -->
         <h4>Información de Pago</h4>
         <div class="row">
             <div class="col-md-4">
@@ -107,12 +108,26 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group">
+                    <label asp-for="MetodoPagoAdelanto" class="control-label"></label>
+                    <select asp-for="MetodoPagoAdelanto" class="form-control" id="metodo-pago">
+                        <option value="">Seleccione método</option>
+                        <option value="0">Efectivo</option>
+                        <option value="1">Transferencia</option>
+                        <option value="2">Crédito</option>
+                    </select>
+                    <span asp-validation-for="MetodoPagoAdelanto" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
                     <label class="control-label">Total Servicios</label>
                     <input type="text" class="form-control" id="total-servicios" readonly
                         value="@Model.Orden.TotalServicios.ToString("N0")" />
                 </div>
             </div>
-            <div class="col-md-4">
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-md-offset-8">
                 <div class="form-group">
                     <label class="control-label">Pendiente a Pagar</label>
                     <input type="text" class="form-control" id="pendiente-pagar" readonly
@@ -133,7 +148,7 @@
                 </div>
             </div>
         </div>
-        
+
 
         <div class="form-group">
             <label asp-for="Orden.Estado" class="control-label"></label>
@@ -181,40 +196,40 @@
             $('#btn-agregar-servicio').click(function () {
                 const index = $('.servicio-row').length;
                 const newRow = `
-                <div class="servicio-row row">
-                    <input type="hidden" name="Servicios[${index}].Id" value="0" />
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <label class="control-label">Descripción del Servicio</label>
-                            <input name="Servicios[${index}].Descripcion" class="form-control servicio-desc" />
-                            <span class="text-danger field-validation-valid" data-valmsg-for="Servicios[${index}].Descripcion" data-valmsg-replace="true"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="control-label">Precio</label>
-                            <input name="Servicios[${index}].Precio" class="form-control servicio-precio" type="number" step="0.01" />
-                            <span class="text-danger field-validation-valid" data-valmsg-for="Servicios[${index}].Precio" data-valmsg-replace="true"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="control-label">Completado</label>
-                            <div class="checkbox">
-                                <input name="Servicios[${index}].Completado" type="checkbox" class="servicio-completado" value="true" />
-                                <input type="hidden" name="Servicios[${index}].Completado" value="false" />
+                        <div class="servicio-row row">
+                            <input type="hidden" name="Servicios[${index}].Id" value="0" />
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label class="control-label">Descripción del Servicio</label>
+                                    <input name="Servicios[${index}].Descripcion" class="form-control servicio-desc" />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="Servicios[${index}].Descripcion" data-valmsg-replace="true"></span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="control-label" style="visibility: hidden;">Eliminar</label>
-                            <button type="button" class="btn btn-danger btn-remove-servicio">
-                                <span class="glyphicon glyphicon-trash"></span> Eliminar
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">Precio</label>
+                                    <input name="Servicios[${index}].Precio" class="form-control servicio-precio" type="number" step="0.01" />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="Servicios[${index}].Precio" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label class="control-label">Completado</label>
+                                    <div class="checkbox">
+                                        <input name="Servicios[${index}].Completado" type="checkbox" class="servicio-completado" value="true" />
+                                        <input type="hidden" name="Servicios[${index}].Completado" value="false" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label class="control-label" style="visibility: hidden;">Eliminar</label>
+                                    <button type="button" class="btn btn-danger btn-remove-servicio">
+                                        <span class="glyphicon glyphicon-trash"></span> Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
 
                 $('#servicios-container').append(newRow);
                 calcularTotales();
@@ -233,6 +248,27 @@
                 });
                 calcularTotales();
             });
+        });
+
+        // Validar que si hay adelanto, se seleccione método de pago
+        $('form').submit(function (e) {
+            const adelanto = parseFloat($('#adelanto').val()) || 0;
+            const metodoPago = $('#metodo-pago').val();
+
+            if (adelanto > 0 && !metodoPago) {
+                e.preventDefault();
+                alert('Por favor seleccione un método de pago para el adelanto.');
+                $('#metodo-pago').focus();
+                return false;
+            }
+
+            // Validar que haya caja abierta si hay adelanto
+            if (adelanto > 0) {
+                // Puedes hacer una llamada AJAX para verificar si hay caja abierta
+                // o dejar que el controlador maneje esta validación
+            }
+
+            return true;
         });
     </script>
 }

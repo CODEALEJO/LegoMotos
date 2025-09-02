@@ -75,9 +75,9 @@ namespace LavaderoMotos.Controllers
                 {
                     Orden = new OrdenTrabajo(),
                     Servicios = new List<ServicioViewModel>
-                    {
-                        new ServicioViewModel() // Servicio inicial vacío
-                    }
+            {
+                new ServicioViewModel() // Servicio inicial vacío
+            }
                 };
 
                 return View(model);
@@ -99,6 +99,24 @@ namespace LavaderoMotos.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    // Validar que si hay adelanto, haya método de pago seleccionado
+                    if ((model.Orden.Adelanto ?? 0) > 0 && !model.MetodoPagoAdelanto.HasValue)
+                    {
+                        ModelState.AddModelError("MetodoPagoAdelanto", "Debe seleccionar un método de pago para el adelanto");
+                        return View(model);
+                    }
+
+                    // Validar que haya una caja abierta si hay adelanto
+                    if ((model.Orden.Adelanto ?? 0) > 0)
+                    {
+                        var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
+                        if (cajaAbierta == null)
+                        {
+                            ModelState.AddModelError("", "No hay una caja abierta. Debe abrir una caja antes de registrar adelantos.");
+                            return View(model);
+                        }
+                    }
+
                     // Crear la orden de trabajo
                     var orden = model.Orden;
                     orden.FechaIngreso = DateTime.Now;
@@ -123,7 +141,13 @@ namespace LavaderoMotos.Controllers
                     }
 
                     _context.OrdenesTrabajo.Add(orden);
-                    await _context.SaveChangesAsync(); // SOLO UNA LLAMADA
+                    await _context.SaveChangesAsync();
+
+                    // Registrar movimiento en caja si hay adelanto
+                    if ((model.Orden.Adelanto ?? 0) > 0 && model.MetodoPagoAdelanto.HasValue)
+                    {
+                        await RegistrarMovimientoCaja(orden, model.Orden.Adelanto.Value, model.MetodoPagoAdelanto.Value, true);
+                    }
 
                     TempData["SuccessMessage"] = "Orden de trabajo creada correctamente.";
                     return RedirectToAction(nameof(Index));
@@ -159,13 +183,12 @@ namespace LavaderoMotos.Controllers
                     return NotFound();
                 }
 
-                // En el método Edit
                 var model = new OrdenTrabajoViewModel
                 {
                     Orden = ordenTrabajo,
                     Servicios = ordenTrabajo.Servicios.Select(s => new ServicioViewModel
                     {
-                        Id = s.Id, // Incluir el ID
+                        Id = s.Id,
                         Descripcion = s.Descripcion,
                         Precio = s.Precio,
                         Completado = s.Completado
@@ -178,7 +201,7 @@ namespace LavaderoMotos.Controllers
                     model.Servicios.Add(new ServicioViewModel());
                 }
 
-                return View("Create", model); // Usamos la misma vista Create para Edit
+                return View("Create", model);
             }
             catch (Exception ex)
             {
@@ -201,6 +224,13 @@ namespace LavaderoMotos.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    // Validar que si hay adelanto, haya método de pago seleccionado
+                    if ((model.Orden.Adelanto ?? 0) > 0 && !model.MetodoPagoAdelanto.HasValue)
+                    {
+                        ModelState.AddModelError("MetodoPagoAdelanto", "Debe seleccionar un método de pago para el adelanto");
+                        return View("Create", model);
+                    }
+
                     var ordenExistente = await _context.OrdenesTrabajo
                         .Include(o => o.Servicios)
                         .FirstOrDefaultAsync(o => o.Id == id);
@@ -210,12 +240,17 @@ namespace LavaderoMotos.Controllers
                         return NotFound();
                     }
 
+                    // Guardar el adelanto anterior para comparar
+                    var adelantoAnterior = ordenExistente.Adelanto ?? 0;
+                    var nuevoAdelanto = model.Orden.Adelanto ?? 0;
+
                     // Actualizar datos de la orden
                     ordenExistente.NombreVehiculo = model.Orden.NombreVehiculo;
                     ordenExistente.Placa = model.Orden.Placa;
                     ordenExistente.Kilometraje = model.Orden.Kilometraje;
                     ordenExistente.Adelanto = model.Orden.Adelanto;
                     ordenExistente.Estado = model.Orden.Estado;
+                    ordenExistente.Notas = model.Orden.Notas;
 
                     // Calcular nuevos totales
                     ordenExistente.TotalServicios = model.Servicios
@@ -240,7 +275,24 @@ namespace LavaderoMotos.Controllers
                         ordenExistente.Servicios.Add(servicio);
                     }
 
-                    await _context.SaveChangesAsync(); // SOLO UNA LLAMADA
+                    await _context.SaveChangesAsync();
+
+                    // Registrar movimiento en caja si hay un nuevo adelanto o aumento
+                    if (nuevoAdelanto > adelantoAnterior && model.MetodoPagoAdelanto.HasValue)
+                    {
+                        var diferenciaAdelanto = nuevoAdelanto - adelantoAnterior;
+
+                        // Validar que haya una caja abierta
+                        var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
+                        if (cajaAbierta == null)
+                        {
+                            TempData["WarningMessage"] = "Orden actualizada, pero no se pudo registrar el adelanto en caja porque no hay una caja abierta.";
+                        }
+                        else
+                        {
+                            await RegistrarMovimientoCaja(ordenExistente, diferenciaAdelanto, model.MetodoPagoAdelanto.Value, false);
+                        }
+                    }
 
                     TempData["SuccessMessage"] = "Orden de trabajo actualizada correctamente.";
                     return RedirectToAction(nameof(Index));
@@ -255,6 +307,74 @@ namespace LavaderoMotos.Controllers
                 return View("Create", model);
             }
         }
+
+        // Método auxiliar para registrar movimiento en caja
+        private async Task RegistrarMovimientoCaja(OrdenTrabajo orden, decimal monto, TipoPago metodoPago, bool esNuevaOrden)
+        {
+            try
+            {
+                // Buscar la caja abierta
+                var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
+                if (cajaAbierta == null)
+                {
+                    throw new Exception("No hay una caja abierta para registrar el movimiento");
+                }
+
+                // Convertir TipoPago a FormaPagoMovimiento
+                FormaPagoMovimiento formaPago;
+                switch (metodoPago)
+                {
+                    case TipoPago.Efectivo:
+                        formaPago = FormaPagoMovimiento.Efectivo;
+                        break;
+                    case TipoPago.Transferencia:
+                        formaPago = FormaPagoMovimiento.Transferencia;
+                        break;
+                    case TipoPago.Credito:
+                        formaPago = FormaPagoMovimiento.Credito;
+                        break;
+                    default:
+                        throw new ArgumentException("Método de pago no válido");
+                }
+
+                // Crear el movimiento de caja
+                var movimiento = new MovimientoCaja
+                {
+                    Fecha = DateTime.Now,
+                    Tipo = TipoMovimiento.Ingreso,
+                    FormaPago = formaPago,
+                    Monto = monto,
+                    Cantidad = 1,
+                    Descripcion = esNuevaOrden ?
+                        $"Adelanto inicial - Orden #{orden.Id} - {orden.NombreVehiculo}" :
+                        $"Adelanto adicional - Orden #{orden.Id} - {orden.NombreVehiculo}",
+                    OrdenTrabajoId = orden.Id,
+                    CajaId = cajaAbierta.Id,
+                    Usuario = User.Identity.Name ?? "Sistema"
+                };
+
+                _context.MovimientoCajas.Add(movimiento);
+
+                // Actualizar saldos de la caja según el método de pago
+                if (formaPago == FormaPagoMovimiento.Efectivo)
+                {
+                    cajaAbierta.SaldoFinalEfectivo += monto;
+                }
+                else if (formaPago == FormaPagoMovimiento.Transferencia)
+                {
+                    cajaAbierta.SaldoFinalTransferencia += monto;
+                }
+                // Para crédito, no se actualiza ningún saldo porque es dinero por cobrar
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar movimiento en caja para la orden {OrdenId}", orden.Id);
+                throw;
+            }
+        }
+
 
         // GET: OrdenTrabajo/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -294,13 +414,23 @@ namespace LavaderoMotos.Controllers
             {
                 var ordenTrabajo = await _context.OrdenesTrabajo
                     .Include(o => o.Servicios)
+                    .Include(o => o.MovimientosCaja) // ¡IMPORTANTE: Incluir movimientos de caja!
                     .FirstOrDefaultAsync(o => o.Id == id);
 
                 if (ordenTrabajo != null)
                 {
-                    // Eliminar servicios primero
+                    // 1. Eliminar movimientos de caja primero (esto resuelve el error FK)
+                    if (ordenTrabajo.MovimientosCaja.Any())
+                    {
+                        _context.MovimientoCajas.RemoveRange(ordenTrabajo.MovimientosCaja);
+                    }
+
+                    // 2. Eliminar servicios
                     _context.ServiciosOrden.RemoveRange(ordenTrabajo.Servicios);
+
+                    // 3. Finalmente eliminar la orden
                     _context.OrdenesTrabajo.Remove(ordenTrabajo);
+
                     await _context.SaveChangesAsync();
 
                     TempData["SuccessMessage"] = "Orden de trabajo eliminada correctamente.";
@@ -319,6 +449,7 @@ namespace LavaderoMotos.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+        
 
         // Método para agregar fila de servicio dinámicamente
         public IActionResult AgregarServicio()

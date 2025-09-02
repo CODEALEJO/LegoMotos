@@ -44,6 +44,8 @@ namespace LavaderoMotos.Models
         // Relación con los servicios
         public virtual ICollection<ServicioOrden> Servicios { get; set; } = new List<ServicioOrden>();
 
+        public virtual ICollection<MovimientoCaja> MovimientosCaja { get; set; } = new List<MovimientoCaja>();
+
         // Propiedades de solo lectura para formato
         [NotMapped]
         public string TotalServiciosFormateado => TotalServicios.ToString("N0", new System.Globalization.CultureInfo("es-CO"));

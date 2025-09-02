@@ -120,27 +120,33 @@ namespace LavaderoMotos.Controllers
                 return NotFound();
             }
 
-            // Calcular totales
+            // Calcular totales separando ventas y adelantos
+            var movimientosIngresoEfectivo = caja.Movimientos
+                .Where(m => m.Tipo == TipoMovimiento.Ingreso && m.FormaPago == FormaPagoMovimiento.Efectivo);
+
+            var movimientosIngresoTransferencia = caja.Movimientos
+                .Where(m => m.Tipo == TipoMovimiento.Ingreso && m.FormaPago == FormaPagoMovimiento.Transferencia);
+
             var resumen = new ResumenCierreCaja
             {
                 Caja = caja,
-                TotalEfectivoVentas = caja.Movimientos
-                    .Where(m => m.Tipo == TipoMovimiento.Ingreso &&
-                                m.FormaPago == FormaPagoMovimiento.Efectivo &&
-                                m.VentaId != null)
+                TotalEfectivoVentas = movimientosIngresoEfectivo
+                    .Where(m => m.VentaId != null)
                     .Sum(m => m.Monto),
-                TotalTransferenciaVentas = caja.Movimientos
-                    .Where(m => m.Tipo == TipoMovimiento.Ingreso &&
-                               m.FormaPago == FormaPagoMovimiento.Transferencia &&
-                               m.VentaId != null)
+                TotalEfectivoAdelantos = movimientosIngresoEfectivo
+                    .Where(m => m.OrdenTrabajoId != null)
+                    .Sum(m => m.Monto),
+                TotalTransferenciaVentas = movimientosIngresoTransferencia
+                    .Where(m => m.VentaId != null)
+                    .Sum(m => m.Monto),
+                TotalTransferenciaAdelantos = movimientosIngresoTransferencia
+                    .Where(m => m.OrdenTrabajoId != null)
                     .Sum(m => m.Monto),
                 TotalEgresosEfectivo = caja.Movimientos
-                    .Where(m => m.Tipo == TipoMovimiento.Egreso &&
-                               m.FormaPago == FormaPagoMovimiento.Efectivo)
+                    .Where(m => m.Tipo == TipoMovimiento.Egreso && m.FormaPago == FormaPagoMovimiento.Efectivo)
                     .Sum(m => m.Monto),
                 TotalEgresosTransferencia = caja.Movimientos
-                    .Where(m => m.Tipo == TipoMovimiento.Egreso &&
-                               m.FormaPago == FormaPagoMovimiento.Transferencia)
+                    .Where(m => m.Tipo == TipoMovimiento.Egreso && m.FormaPago == FormaPagoMovimiento.Transferencia)
                     .Sum(m => m.Monto)
             };
 
@@ -216,13 +222,15 @@ namespace LavaderoMotos.Controllers
         public Caja Caja { get; set; }
         public decimal TotalEfectivoVentas { get; set; }
         public decimal TotalTransferenciaVentas { get; set; }
+        public decimal TotalEfectivoAdelantos { get; set; }
+        public decimal TotalTransferenciaAdelantos { get; set; }
         public decimal TotalEgresosEfectivo { get; set; }
         public decimal TotalEgresosTransferencia { get; set; }
 
-        public decimal TotalIngresosEfectivo => Caja.SaldoInicialEfectivo + TotalEfectivoVentas;
+        public decimal TotalIngresosEfectivo => Caja.SaldoInicialEfectivo + TotalEfectivoVentas + TotalEfectivoAdelantos;
         public decimal TotalEgresosEfectivoTotal => TotalEgresosEfectivo;
         public decimal SaldoTeoricoEfectivo => TotalIngresosEfectivo - TotalEgresosEfectivoTotal;
 
-        public decimal SaldoTeoricoTransferencia => TotalTransferenciaVentas - TotalEgresosTransferencia;
+        public decimal SaldoTeoricoTransferencia => (TotalTransferenciaVentas + TotalTransferenciaAdelantos) - TotalEgresosTransferencia;
     }
 }
