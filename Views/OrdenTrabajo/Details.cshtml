@@ -47,6 +47,21 @@
         </tbody>
     </table>
 
+
+    <!-- NUEVA SECCIÓN: Notas y Observaciones -->
+    @if (!string.IsNullOrEmpty(Model.Notas))
+    {
+        <h4>Notas y Observaciones</h4>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p
+                    style="white-space: pre-line; background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff;">
+                    @Model.Notas
+                </p>
+            </div>
+        </div>
+    }
+
     <h4>Información de Pago</h4>
     <dl class="dl-horizontal">
         <dt>Total Servicios:</dt>

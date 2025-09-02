@@ -5,6 +5,7 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title>Orden de Trabajo #@Model.Id</title>
@@ -178,6 +179,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h2>LEGO MOTORS</h2>
@@ -243,6 +245,19 @@
         </div>
     </div>
 
+
+    <!-- NUEVA SECCIÓN: Notas y Observaciones -->
+    @if (!string.IsNullOrEmpty(Model.Notas))
+    {
+        <div class="section">
+            <div class="section-title">NOTAS Y OBSERVACIONES</div>
+            <div
+                style="margin: 2mm 0; padding: 2mm; border: 1px dashed #ccc; background-color: #f9f9f9; font-size: 11px; line-height: 1.3;">
+                @Html.Raw(Model.Notas.Replace("\n", "<br/>"))
+            </div>
+        </div>
+    }
+
     <div class="section">
         <div class="section-title">INFORMACIÓN DE PAGO</div>
         <div class="row">
@@ -291,4 +306,5 @@
         };
     </script>
 </body>
+
 </html>

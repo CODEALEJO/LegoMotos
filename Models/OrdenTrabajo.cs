@@ -35,6 +35,9 @@ namespace LavaderoMotos.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal PendientePagar { get; set; }
 
+        [Display(Name = "Notas/Observaciones")]
+        public string? Notas { get; set; } // Nueva propiedad para notas
+
         [Display(Name = "Estado")]
         public string Estado { get; set; } = "Pendiente"; // Pendiente, En Proceso, Completada
 
@@ -44,18 +47,18 @@ namespace LavaderoMotos.Models
         // Propiedades de solo lectura para formato
         [NotMapped]
         public string TotalServiciosFormateado => TotalServicios.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
-        
+
         [NotMapped]
         public string AdelantoFormateado => (Adelanto ?? 0).ToString("N0", new System.Globalization.CultureInfo("es-CO"));
-        
+
         [NotMapped]
         public string PendientePagarFormateado => PendientePagar.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
-        
+
         [NotMapped]
         public string FechaIngresoFormateada => FechaIngreso.ToString("dd/MM/yyyy HH:mm");
     }
 
 
 
-   
+
 }
