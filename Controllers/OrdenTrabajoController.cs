@@ -119,7 +119,7 @@ namespace LavaderoMotos.Controllers
 
                     // Crear la orden de trabajo
                     var orden = model.Orden;
-                    orden.FechaIngreso = DateTime.Now;
+                    orden.FechaIngreso = DateTime.UtcNow;
 
                     // Calcular total de servicios
                     orden.TotalServicios = model.Servicios
@@ -340,7 +340,7 @@ namespace LavaderoMotos.Controllers
                 // Crear el movimiento de caja
                 var movimiento = new MovimientoCaja
                 {
-                    Fecha = DateTime.Now,
+                    Fecha = DateTime.UtcNow,
                     Tipo = TipoMovimiento.Ingreso,
                     FormaPago = formaPago,
                     Monto = monto,

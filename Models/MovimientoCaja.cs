@@ -23,7 +23,7 @@ namespace LavaderoMotos.Models
         public int Id { get; set; }
 
         [Required]
-        public DateTime Fecha { get; set; } = DateTime.Now;
+        public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
         [Required]
         public TipoMovimiento Tipo { get; set; }

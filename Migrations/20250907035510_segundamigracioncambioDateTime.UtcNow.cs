@@ -5,7 +5,7 @@
 namespace LavaderoMotos.Migrations
 {
     /// <inheritdoc />
-    public partial class agregarca : Migration
+    public partial class segundamigracioncambioDateTimeUtcNow : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

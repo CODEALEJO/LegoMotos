@@ -20,7 +20,7 @@ namespace LavaderoMotos.Models
         public int? Kilometraje { get; set; }
 
         [Display(Name = "Fecha de Ingreso")]
-        public DateTime FechaIngreso { get; set; } = DateTime.Now;
+        public DateTime FechaIngreso { get; set; } = DateTime.UtcNow;
 
         [Display(Name = "Adelanto")]
         [Range(0, double.MaxValue, ErrorMessage = "El adelanto debe ser mayor o igual a 0")]

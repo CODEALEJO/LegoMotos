@@ -45,7 +45,7 @@ namespace LavaderoMotos.Controllers
                 // Crear nueva caja con valores por defecto
                 var nuevaCaja = new Caja
                 {
-                    FechaApertura = DateTime.Now,
+                    FechaApertura = DateTime.UtcNow,
                     SaldoInicialEfectivo = 0,
                     SaldoFinalEfectivo = 0,
                     SaldoFinalTransferencia = 0,
@@ -81,7 +81,7 @@ namespace LavaderoMotos.Controllers
                 var nuevaCaja = new Caja
                 {
                     SaldoInicialEfectivo = caja.SaldoInicialEfectivo,
-                    FechaApertura = DateTime.Now,
+                    FechaApertura = DateTime.UtcNow,
                     UsuarioApertura = User.Identity?.Name ?? "Sistema",
                     SaldoFinalEfectivo = caja.SaldoInicialEfectivo,
                     SaldoFinalTransferencia = 0
@@ -163,7 +163,8 @@ namespace LavaderoMotos.Controllers
                 return NotFound();
             }
 
-            caja.FechaCierre = DateTime.Now;
+            caja.FechaCierre = DateTime.UtcNow;
+
             caja.SaldoFinalEfectivo = saldoFinalEfectivo;
             caja.SaldoFinalTransferencia = saldoFinalTransferencia;
             caja.UsuarioCierre = User.Identity?.Name ?? "Sistema";
@@ -180,7 +181,7 @@ namespace LavaderoMotos.Controllers
             var movimiento = new MovimientoCaja
             {
                 CajaId = cajaId,
-                Fecha = DateTime.Now,
+                Fecha = DateTime.UtcNow,
                 Tipo = TipoMovimiento.Egreso,
                 Usuario = User.Identity?.Name ?? "Sistema"
             };

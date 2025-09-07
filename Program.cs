@@ -42,13 +42,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Configuración de DbContext para MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(
+    options.UseNpgsql(
         connectionString,
-        new MySqlServerVersion(new Version(8, 0, 34)),
-        mySqlOptions => mySqlOptions.EnableRetryOnFailure(
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null
+            errorCodesToAdd: null
         )
     ));
 

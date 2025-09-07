@@ -15,7 +15,7 @@ namespace LavaderoMotos.Models
 
         [Required(ErrorMessage = "La fecha de apertura es requerida")]
         [Display(Name = "Fecha de Apertura")]
-        public DateTime FechaApertura { get; set; } = DateTime.Now;
+        public DateTime FechaApertura { get; set; } = DateTime.UtcNow;
 
         [Display(Name = "Fecha de Cierre")]
         public DateTime? FechaCierre { get; set; }

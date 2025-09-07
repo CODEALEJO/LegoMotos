@@ -7,6 +7,8 @@ namespace LavaderoMotos.Data
 {
     public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
+        private readonly UtcDateInterceptor _utcInterceptor = new();
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -22,36 +24,34 @@ namespace LavaderoMotos.Data
         public DbSet<OrdenTrabajo> OrdenesTrabajo { get; set; }
         public DbSet<ServicioOrden> ServiciosOrden { get; set; }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder); // Necesario para Identity
 
             // Tus configuraciones existentes...
             modelBuilder.Entity<ProductoVenta>()
-                   .Property(p => p.Precio)
-                   .HasColumnType("decimal(18,2)");
+                .Property(p => p.Precio)
+                .HasColumnType("numeric(18,2)");
 
             modelBuilder.Entity<Venta>()
                 .Property(v => v.Descuento)
-                .HasColumnType("decimal(5,2)");
+                .HasColumnType("numeric(5,2)");
 
-            // Configuraciones para Orden de Trabajo
             modelBuilder.Entity<OrdenTrabajo>()
                 .Property(o => o.TotalServicios)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             modelBuilder.Entity<OrdenTrabajo>()
                 .Property(o => o.PendientePagar)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             modelBuilder.Entity<OrdenTrabajo>()
                 .Property(o => o.Adelanto)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             modelBuilder.Entity<ServicioOrden>()
                 .Property(s => s.Precio)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             // Configuración de la relación
             modelBuilder.Entity<ServicioOrden>()
@@ -59,6 +59,12 @@ namespace LavaderoMotos.Data
                 .WithMany(o => o.Servicios)
                 .HasForeignKey(s => s.OrdenTrabajoId)
                 .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.AddInterceptors(_utcInterceptor);
+            base.OnConfiguring(optionsBuilder);
         }
     }
 }

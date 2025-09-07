@@ -16,7 +16,7 @@ namespace LavaderoMotos.Models
 
         [DataType(DataType.DateTime)]
         [Display(Name = "Fecha de Venta")]
-        public DateTime Fecha { get; set; } = DateTime.Now;
+        public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
         [Required(ErrorMessage = "La placa es obligatoria.")]
         [RegularExpression(@"^[A-Z0-9]{1,6}$", ErrorMessage = "La placa debe tener máximo 6 caracteres alfanuméricos en MAYÚSCULAS.")]

@@ -43,23 +43,23 @@ namespace LavaderoMotos.Controllers
             return View(ventas);
         }
 
-        public IActionResult Create()
-        {
-            var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
+    public IActionResult Create()
+{
+    var cajaAbierta = _context.Cajas.FirstOrDefault(c => c.FechaCierre == null);
 
-            if (cajaAbierta == null)
-            {
-                TempData["ErrorMessage"] = "Antes de generar ventas debes abrir la caja del día.";
-                return RedirectToAction("Index"); // 🚨 Redirige al listado en vez de mostrar CreateEdit
-            }
+    if (cajaAbierta == null)
+    {
+        TempData["ErrorMessage"] = "Antes de generar ventas debes abrir la caja del día.";
+        return RedirectToAction("Index");
+    }
 
-            return View("CreateEdit", new Venta
-            {
-                Fecha = DateTime.Now,
-                Productos = new List<ProductoVenta>(),
-                CajaId = cajaAbierta.Id
-            });
-        }
+    return View("CreateEdit", new Venta
+    {
+        Fecha = DateTime.UtcNow, // ✅ Cambiado a UTC
+        Productos = new List<ProductoVenta>(),
+        CajaId = cajaAbierta.Id
+    });
+}
 
 
         public IActionResult Edit(int id)
@@ -112,12 +112,7 @@ namespace LavaderoMotos.Controllers
                 // Verificar si hay caja abierta (pero no bloquear si no hay)
                 var cajaAbierta = await _context.Cajas.FirstOrDefaultAsync(c => c.FechaCierre == null);
 
-                // if (venta.Productos == null || venta.Productos.Count == 0)
-                // {
-                //     TempData["ErrorMessage"] = "Debe agregar al menos un producto";
-                //     return View("CreateEdit", venta);
-                // }
-
+             
                 if (venta.MetodosPago == null || venta.MetodosPago.Count == 0)
                 {
                     TempData["ErrorMessage"] = "Debe agregar al menos un método de pago";
@@ -214,7 +209,7 @@ namespace LavaderoMotos.Controllers
                                 existente.Placa = venta.Placa;
                                 existente.Kilometraje = venta.Kilometraje;
                                 existente.Descuento = venta.Descuento;
-                                existente.Fecha = venta.Fecha;
+                                existente.Fecha = venta.Fecha.ToUniversalTime();
                                 existente.NombreCliente = venta.NombreCliente;
                                 existente.CelularCliente = venta.CelularCliente;
                                 existente.CedulaCliente = venta.CedulaCliente;
@@ -280,7 +275,7 @@ namespace LavaderoMotos.Controllers
                             }
                             else
                             {
-                                venta.Fecha = venta.Fecha == default ? DateTime.Now : venta.Fecha;
+                                venta.Fecha = venta.Fecha == default ? DateTime.UtcNow : venta.Fecha.ToUniversalTime();
 
                                 // Asignar caja solo si está abierta
                                 if (cajaAbierta != null)
@@ -301,7 +296,7 @@ namespace LavaderoMotos.Controllers
                                     var movimiento = new MovimientoCaja
                                     {
                                         CajaId = cajaAbierta.Id,
-                                        Fecha = DateTime.Now,
+                                        Fecha = DateTime.UtcNow,
                                         Tipo = TipoMovimiento.Ingreso,
                                         FormaPago = metodoPago.Tipo == TipoMetodoPago.Efectivo ?
                                             FormaPagoMovimiento.Efectivo : FormaPagoMovimiento.Transferencia,
