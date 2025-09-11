@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "EAKU6rE0D+QtIwc+dweQTTcmDDotf/5IJ2OZoinovcI=",
+  "Hash": "r9dvYm0lCzRxIwgMVf0QOI13pZGuucb3hnbHv9PPfOI=",
   "Source": "LavaderoMotos",
   "BasePath": "_content/LavaderoMotos",
   "Mode": "Default",
@@ -2283,6 +2283,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\images\\orden-trabajo\\fotomoto.jpg",
+      "SourceId": "LavaderoMotos",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\",
+      "BasePath": "_content/LavaderoMotos",
+      "RelativePath": "images/orden-trabajo/fotomoto#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "7cythx8lbr",
+      "Integrity": "6Re9821fU9baBsHZmL8do1uV27cQiew64e0HLGs92lY=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\orden-trabajo\\fotomoto.jpg"
     },
     {
       "Identity": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\js\\site.js",
@@ -8572,6 +8593,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-hjIBkvmgxQXbNXK3B9YQ3t06RwLuQSQzC/dpvuB/lMk="
+        }
+      ]
+    },
+    {
+      "Route": "images/orden-trabajo/fotomoto.7cythx8lbr.jpg",
+      "AssetFile": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\images\\orden-trabajo\\fotomoto.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "82106"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"6Re9821fU9baBsHZmL8do1uV27cQiew64e0HLGs92lY=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 11 Sep 2025 02:53:52 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "7cythx8lbr"
+        },
+        {
+          "Name": "label",
+          "Value": "images/orden-trabajo/fotomoto.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-6Re9821fU9baBsHZmL8do1uV27cQiew64e0HLGs92lY="
+        }
+      ]
+    },
+    {
+      "Route": "images/orden-trabajo/fotomoto.jpg",
+      "AssetFile": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\images\\orden-trabajo\\fotomoto.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "82106"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"6Re9821fU9baBsHZmL8do1uV27cQiew64e0HLGs92lY=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 11 Sep 2025 02:53:52 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-6Re9821fU9baBsHZmL8do1uV27cQiew64e0HLGs92lY="
         }
       ]
     },

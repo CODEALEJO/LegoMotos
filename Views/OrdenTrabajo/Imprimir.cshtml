@@ -10,61 +10,68 @@
     <meta charset="utf-8" />
     <title>Orden de Trabajo #@Model.Id</title>
     <style>
-        /* Estilos específicos para impresora térmica de 80mm */
+        /* Estilos para tamaño carta */
         body {
-            font-family: 'Courier New', monospace;
+            font-family: Arial, sans-serif;
             font-size: 12px;
-            width: 76mm;
-            margin: 0;
-            padding: 2mm;
+            width: 210mm;
+            /* Ancho carta */
+            min-height: 297mm;
+            /* Alto carta */
+            margin: 0 auto;
+            padding: 10mm;
+            box-sizing: border-box;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 3mm;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
         }
 
         .header h2 {
-            font-size: 14px;
-            margin: 2mm 0;
+            font-size: 20px;
+            margin: 5px 0;
             font-weight: bold;
         }
 
         .header p {
-            margin: 1mm 0;
-            font-size: 10px;
+            margin: 3px 0;
+            font-size: 12px;
         }
 
         .document-title {
-            font-size: 13px;
+            font-size: 18px;
             font-weight: bold;
             text-align: center;
-            margin: 2mm 0;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 2mm;
+            margin: 10px 0;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
         }
 
         .section {
-            margin: 3mm 0;
+            margin: 10px 0;
             border-bottom: 1px dashed #000;
-            padding-bottom: 3mm;
+            padding-bottom: 10px;
         }
 
         .section-title {
             font-weight: bold;
-            margin-bottom: 2mm;
+            margin-bottom: 5px;
             border-bottom: 1px solid #000;
-            padding-bottom: 1mm;
+            padding-bottom: 3px;
+            font-size: 14px;
         }
 
         .row {
             display: flex;
-            margin-bottom: 1mm;
+            margin-bottom: 3px;
         }
 
         .label {
             font-weight: bold;
-            width: 35mm;
+            width: 120px;
         }
 
         .value {
@@ -74,19 +81,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 2mm 0;
-            font-size: 11px;
+            margin: 5px 0;
+            font-size: 12px;
         }
 
         th {
             text-align: left;
-            border-bottom: 1px solid #000;
-            padding: 1mm 0;
-            font-size: 11px;
+            border-bottom: 2px solid #000;
+            padding: 3px 0;
+            font-size: 12px;
         }
 
         td {
-            padding: 1mm 0;
+            padding: 3px 0;
             border-bottom: 1px dotted #ccc;
         }
 
@@ -96,15 +103,15 @@
 
         .total-row {
             font-weight: bold;
-            border-top: 1px solid #000;
-            margin-top: 2mm;
-            padding-top: 2mm;
+            border-top: 2px solid #000;
+            margin-top: 5px;
+            padding-top: 5px;
         }
 
         .signature-area {
-            margin-top: 5mm;
+            margin-top: 15px;
             border-top: 1px dashed #000;
-            padding-top: 3mm;
+            padding-top: 10px;
         }
 
         .signature-line {
@@ -113,15 +120,15 @@
             margin: 15px auto;
             padding-top: 25px;
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .footer {
             text-align: center;
-            margin-top: 5mm;
-            font-size: 10px;
+            margin-top: 15px;
+            font-size: 11px;
             border-top: 1px dashed #000;
-            padding-top: 2mm;
+            padding-top: 10px;
         }
 
         .no-print {
@@ -136,19 +143,81 @@
             color: orange;
         }
 
+        /* Estilos para el inventario de la moto */
+        .inventory-section {
+            margin: 15px 0;
+            border: 1px solid #000;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .inventory-checkbox {
+            margin-right: 5px;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #000;
+        }
+
+        /* Estilos para las imágenes de la moto */
+        .moto-images {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .moto-image-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .moto-image {
+            max-width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+            opacity: 0.8;
+            border: 1px solid #ccc;
+        }
+
+        .moto-label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+            text-align: center;
+        }
+
         @@media print {
             @@page {
-                size: 80mm auto;
+                size: letter;
                 margin: 0;
             }
 
             body {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                width: 210mm;
+                height: 297mm;
             }
 
             .no-print {
                 display: none !important;
+            }
+
+            /* Ocultar checkbox de impresión pero mantener el borde */
+            .inventory-checkbox {
+                background-color: transparent !important;
+                -webkit-print-color-adjust: exact;
             }
         }
 
@@ -245,18 +314,127 @@
         </div>
     </div>
 
-
     <!-- NUEVA SECCIÓN: Notas y Observaciones -->
     @if (!string.IsNullOrEmpty(Model.Notas))
     {
         <div class="section">
             <div class="section-title">NOTAS Y OBSERVACIONES</div>
             <div
-                style="margin: 2mm 0; padding: 2mm; border: 1px dashed #ccc; background-color: #f9f9f9; font-size: 11px; line-height: 1.3;">
+                style="margin: 5px 0; padding: 5px; border: 1px dashed #ccc; background-color: #f9f9f9; font-size: 11px; line-height: 1.3;">
                 @Html.Raw(Model.Notas.Replace("\n", "<br/>"))
             </div>
         </div>
     }
+
+    <!-- NUEVA SECCIÓN: Inventario de la Moto -->
+    <div class="inventory-section">
+        <div class="section-title">INVENTARIO DE LA MOTO</div>
+        <div class="inventory-grid">
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>ESPEJOS</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>ASIENTOS</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>TAPON RADIADORES</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>PEDALES</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>FARO DELANTERO</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>LUZ DE STOP TRASERO</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>FILTRO DE AIRE</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>CLAXON</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>DIRECCIONALES</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>CUBIERTAS COMPLETAS</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>BATERIA</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>ESTEREO</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>TAPON DE GASOLINA</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>TACOMETROS</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>LLAVES</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>PARABRISAS</span>
+            </div>
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>BARRAS DE PROTECCIÓN</span>
+            </div>
+
+            <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>MALETAS LATERALES</span>
+            </div>
+
+              <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>TOP CASE</span>
+            </div>
+            
+              <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>HAND SAVERS</span>
+            </div>
+
+            
+              <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>GPS</span>
+            </div>
+
+            
+              <div class="inventory-item">
+                <div class="inventory-checkbox"></div>
+                <span>ALARMA</span>
+            </div>
+    </div>
+
+    <!-- Imagen de la moto desde 4 ángulos -->
+    <div class="moto-images">
+        <div class="moto-image-container">
+            <img src="~/images/orden-trabajo/fotomoto.jpg" alt="Vistas de la moto desde 4 ángulos" class="moto-image" />
+            <div class="moto-label">VISTAS DE LA MOTO - MARQUE LAS ÁREAS CON DAÑOS</div>
+        </div>
+    </div>
+    </div>
 
     <div class="section">
         <div class="section-title">INFORMACIÓN DE PAGO</div>
@@ -293,16 +471,14 @@
         <a asp-action="Index" class="btn-volver">
             ← Volver al Listado
         </a>
+        <button onclick="window.print()" class="btn-volver" style="background-color: #0d6efd;">
+            🖨️ Imprimir
+        </button>
     </div>
 
     <script>
         window.onload = function () {
-            setTimeout(function () {
-                window.print();
-                setTimeout(function () {
-                    window.close();
-                }, 100);
-            }, 200);
+
         };
     </script>
 </body>

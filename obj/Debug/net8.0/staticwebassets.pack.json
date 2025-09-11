@@ -189,6 +189,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\images\\orden-trabajo\\fotomoto.jpg",
+      "PackagePath": "staticwebassets\\images\\orden-trabajo\\fotomoto.jpg"
+    },
+    {
       "Id": "C:\\Users\\alejo\\OneDrive\\Escritorio\\Programacion\\LavaderoMotos\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
